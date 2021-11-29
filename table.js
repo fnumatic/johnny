@@ -1,231 +1,73 @@
-//Erstellen der Ramtabelle
+function renderRam(ram, highlight,selected){
+	return ram.map((e,i) => ramTableRow(e, i,highlight,selected));
+}
+function ramTableRow(value,adress,highlight_,selected_){
+  if (typeof value !== 'number') console.log('meep meep, wrong type',value)
+  if (adress > 999)   return
 
-function generateRam(){
- p = document.getElementById("RamTBody");
-	while (p.firstChild) {
-		p.removeChild(p.firstChild);
-		}
-
-  for (var n = 0;n<ramSize; n++){
-	newtr = document.createElement("tr");
-    //erstellen der Spalten
-	newtd1 =document.createElement("td");
-	newtd = document.createElement("td");
-	newtd2 = document.createElement("td");
-	newtd3 = document.createElement("td");
-	newtd4 = document.createElement("td");
-	//erstellen der Inhalte
-	newtd1.appendChild(document.createTextNode(n));
-	newtd.appendChild(document.createTextNode("00.000"));
-
-	//einfügen der Spalten
-	Att= document.createAttribute("class");
-	Att.value = "col1";
-	newtd1.setAttributeNode(Att);
-
-	tdwith= document.createAttribute("width");
-	tdwith.value = "25%";
-	newtd1.setAttributeNode(Att);
-	newtd1.setAttributeNode(tdwith);
-
-	newtr.appendChild(newtd1);
-
-	Att= document.createAttribute("class");
-	Att.value = "col2";
-	newtd.setAttributeNode(Att);
-		tdwith= document.createAttribute("width");
-	tdwith.value = "25%";
-
-	newtd.setAttributeNode(tdwith);
-	newtr.appendChild(newtd);
-
-	Att= document.createAttribute("class");
-	Att.value = "col4";
-	newtd3.setAttributeNode(Att);
-		tdwith= document.createAttribute("width");
-	tdwith.value = "25%";
-	newtd3.setAttributeNode(tdwith);
-	newtr.appendChild(newtd3);
-
-	Att= document.createAttribute("class");
-	Att.value = "col5";
-	newtd4.setAttributeNode(Att);
-	tdwith= document.createAttribute("width");
-	tdwith.value = "25%";
-	newtd4.setAttributeNode(tdwith);
-	newtr.appendChild(newtd4);
+  const {microCode} = Alpine.store('default')
+  const hv = highVal(value);
+  const lv = lowVal(value);
+  const high =  parseInt(hv) + 200;
+  const data = hv + "." + lv
+  const highlight= highlight_ == adress
+  const selected= selected_ == adress
+  const [asm,op] = high > 200 && microCode[high] != undefined
+  ? [microCode[high], lv]
+  : ["",""]
+  return {	id: adress,	data,	asm,	op ,highlight,selected }
+}
 
 
-	//Zum erkennen auf welche Spalte gecklickt wurde
-	Att= document.createAttribute("class");
-	Att.value = "RamCell";
-	newtr.setAttributeNode(Att);
-	Att= document.createAttribute("ID");
-	Att.value =  n;
-
-	newtr.setAttributeNode(Att);
-	p.appendChild(newtr);
-	//Onclick event für eingeben von Daten
-
-	document.getElementsByClassName("RamCell")[n].addEventListener("click",EditRam)
+function codelbl(agg, i, mc) {
+	return R.assoc((i - 200) * 10, "   " + mc[i] + ":", agg);
+}
+function hopt(i,mc) {
+  return {
+    id: i - 200,
+    val: zeroPad(i - 200, 2) + ": " + mc[i],
   };
-}//ende GenerateRam
-
-function updateRam(){
-
-	for(i=0;i<ramSize;i++){
-	  writeToRam(parseInt(Ram[i]),i)
-  }
-
-
+}
+function tblrow(desc,mcd,highlight) {
+  return (i) => ({
+    id: zeroPad(i, 3) + (desc[i] || ""),
+    mc: microCodeToText(parseInt(mcd[i])),
+    highlight: i == highlight
+  });
 }
 
-function GenerateMicroCodeTable(){
-
-	var p = document.getElementById("McTBody");
-
-	//Löschen der alten einträge (wichtig wenn Mc von Datei geladen wird)
-	while (p.firstChild) {
-    p.removeChild(p.firstChild);
-	}
-
-
-
-
-for( i= 0;i<200;i++){
-	newtr = document.createElement("tr");
-
-	Att= document.createAttribute("class");
-	Att.value = "MicroCodeTable";
-	newtr.setAttributeNode(Att);
-
-
-    //erstellen der Spalten
-	newtd1 =document.createElement("td");
-	newtd2 = document.createElement("td")
-	Att= document.createAttribute("class");
-	Att.value = "Mccol1";
-	newtd1.setAttributeNode(Att);
-	Att= document.createAttribute("class");
-	Att.value = "Mccol2";
-	newtd2.setAttributeNode(Att);
-	newtd1.appendChild(document.createTextNode(zeroPad(i,3)));
-
-	newtr.appendChild(newtd1);
-
-	newtd2.innerText = microCodeToText(parseInt(MicroCode[i]))
-newtr.appendChild(newtd2);
-p.appendChild(newtr);
+function renderMC(mc, highlight) {
+  const desc = R.range(200, mc.length).reduce((agg,i) => codelbl(agg,i,mc), {});
+  return R.range(0, 200).map(tblrow(desc,mc,highlight));
 }
 
-
-
-//einfügen der Auswahlmöglichkeiten für die eingabe in den Ram
-p = document.getElementById("CommandSelect");
-while (p.firstChild) {//entfernen alter einträge(wichtig wenn Mc neu geladen wird)
-		p.removeChild(p.firstChild);
-		}
-for(i= 200; i< MicroCode.length; i++){
-
-	document.getElementsByClassName("Mccol1")[(i-200)*10].appendChild(document.createTextNode("   " +MicroCode[i] + ":" ));
-
-	if(i>200){ //fetch nicht als auswählbaren befehl
-	newOption = document.createElement("option");
-	Att= document.createAttribute("value");
-	Att.value = i-200;
-	newOption.setAttributeNode(Att);
-	newOption.appendChild(document.createTextNode(zeroPad((i-200),2) + ": " +  MicroCode[i]));
-	p.appendChild(newOption)
-	}
+function renderCommandSelect(mc) {
+  if (!mc) return
+  const opts = R.range(201, mc.length).map(i => hopt(i,mc));
+  Alpine.store("commandSelect").items=opts;
 }
 
-updateRam();//damit die neuen Macrobefehle im Ram angezeigt werden
-}
-
-function microCodeToText(id){//nimmt eine Microcodeid an und übersetzt diese in den Text wie er in der Tabelle steht
-
-	switch(id)	{
-case 0:
-return"---";
-break;
-case 2://
-return"ram ---> db ";
-break;
-
-case 1://
-return"db ---> ram";
-break;
-
-case 13://
-return"plus";
-break;
-
-
-case 14://
-return"minus";
-break;
-
-case 12://
-return"acc:=0";
-break;
-
-case 18://
-return"db ---> acc";
-break;
-
-case 15://
-return"acc ---> db ";
-break;
-
-case 16://
-return"acc++";
-break;
-
-case 17://
-return"acc--";
-break;
-
-case 3://
-return"db ---> ins";
-break;
-
-case 5://
-return"ins ---> mc";
-break;
-
-case 11://
-return"ins ---> pc";
-break;
-
-case 4://
-return"ins ---> ab";
-break;
-
-case 8://
-return"pc ---> ab";
-break;
-
-case 7://
-return"mc:=0";
-break;
-
-case 9://
-return"pc++";
-break;
-
-case 10://
-return"acc=0?->pc++";
-break;
-
-case 19://
-return"stop";
-break;
-
-default:
-console.log("Ungültiger Befehl " +befehl);
-break
-
-
-}//case
-
+const mc2txt = {
+    0: "---",
+    1: "db ---> ram",
+    2: "ram ---> db ",
+    3: "db ---> ins",
+    4: "ins ---> ab",
+    5: "ins ---> mc",
+    7: "mc:=0",
+    8: "pc ---> ab",
+    9: "pc++",
+    10: "acc=0?->pc++",
+    11: "ins ---> pc",
+    12: "acc:=0",
+    13: "plus",
+    14: "minus",
+    15: "acc ---> db ",
+    16: "acc++",
+    17: "acc--",
+    18: "db ---> acc",
+    19: "stop",
+  };
+function microCodeToText(id){
+  return (mc2txt[id])? mc2txt[id] : 'undefined'
 }

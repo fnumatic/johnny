@@ -8,358 +8,245 @@ function SingleMicroStep(){//legacy(entfernen)?
 //Abläufe im Microcode
 
 
-function microStep(display){
-switch(parseInt(MicroCode[MicroCodeCounter]))	{
-case 2://
-RamDb();
-MicroCodeCounter++;
-if(display){
-	FadeIn(1);
-	setTimeout(FadeOut, blockFadeoutTime,1)
-}
-break;
+function microStep(display) {
+  const {microCode,mcCounter}=Alpine.store('default')
+  let mcCounter_ = mcCounter
+  switch (parseInt(microCode[mcCounter])) {
+    case 1: //
+      DbRam();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 0);
+      break;
 
-case 1://
-DbRam();
-MicroCodeCounter++;
-if(display){
-	FadeIn(0);
-	setTimeout(FadeOut, blockFadeoutTime,0)
+    case 2: //
+      RamDb();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 1);
+      break;
 
+    case 3: //
+      DbIns();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 2);
+      break;
 
-}
-break;
+    case 4: //
+      InsAd();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 6);
+      break;
 
-case 13://
-AddAcc();
-MicroCodeCounter++;
-if(display){
-	FadeIn(3);
-	setTimeout(FadeOut, blockFadeoutTime,3)
+    case 5: //
+      mcCounter_ = InsMc();
+      renderSignal(display, 5);
+      break;
 
+    case 8: //
+      PcAd();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 8);
+      break;
 
+    case 7: //
+      mcCounter_ = NullMc();
+      renderSignal(display, 14);
+      break;
 
-}
-break;
+    case 9: //
+      IncPc();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 17);
+      break;
 
+    case 10: //
+      IncPc0();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 16);
+      break;
 
-case 14://
-SubAcc();
-MicroCodeCounter++;
-if(display){
-	FadeIn(3);
-	setTimeout(FadeOut, blockFadeoutTime,3)
+    case 11: //
+      InsPc();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 7);
+      break;
 
+    case 12: //
+      NullAcc();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 11);
+      break;
 
+    case 13: //
+      AddAcc();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 3);
+      break;
 
-}
-break;
+    case 14: //
+      SubAcc();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 3);
+      break;
 
-case 12://
-NullAcc();
-MicroCodeCounter++;
-if(display){
-FadeIn(11);
-	setTimeout(FadeOut, blockFadeoutTime,13)
-}
-break;
+    case 18: //
+      DbAcc();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 3);
+      break;
 
-case 18://
-DbAcc();
-MicroCodeCounter++;
-if(display){
-	FadeIn(3);
-	setTimeout(FadeOut, blockFadeoutTime,3)
+    case 15: //
+      AccDb();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 4);
+      break;
 
+    case 16: //
+      IncAcc();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 12);
+      break;
 
-}
+    case 17: //
+      DecAcc();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 13);
 
-break;
+      break;
 
-case 15://
-AccDb();
-MicroCodeCounter++;
-if(display){
-	FadeIn(4);
-	setTimeout(FadeOut, blockFadeoutTime,4)
+    case 19: //
+      Halt();
+      mcCounter_ = mcCounter + 1;
+      renderSignal(display, 15);
+      break;
 
+    default:
+      console.log(
+        "Ungültiger Befehl " +
+          microCode[mcCounter] +
+          "in Adresse " +
+          mcCounter +
+          " programm wird beendent"
+      );
+      alert(
+        "Kein Befehl in Microcodeadresse " +
+          mcCounter +
+          " Das Programm wird beendet"
+      );
+      Halt();
+      NullMc();
+      break;
+  } //switch
+  Alpine.store('default').mcCounter = mcCounter_
 
-}
-
-break;
-
-case 16://
-IncAcc();
-MicroCodeCounter++;
-
-
-if(display){
-FadeIn(12);
-	setTimeout(FadeOut, blockFadeoutTime,12)
-}
-
-break;
-
-case 17://
-DecAcc();
-MicroCodeCounter++;
-if(display){
-FadeIn(13);
-	setTimeout(FadeOut, blockFadeoutTime,13)
-}
-break;
-
-case 3://
-DbIns();
-MicroCodeCounter++;
-if(display){
-	FadeIn(2);
-	setTimeout(FadeOut, blockFadeoutTime,2)
-
-
-}
-break;
-
-case 5://
-InsMc();
-if(display){
-
-	FadeIn(5);
-	setTimeout(FadeOut, blockFadeoutTime,5)
-
-
-}
-break;
-
-case 11://
-InsPc();
-MicroCodeCounter++;
-if(display){
-	FadeIn(7);
-	setTimeout(FadeOut, blockFadeoutTime,7)
-
-
-
-}
-break;
-
-case 4://
-InsAd();
-MicroCodeCounter++;
-if(display){
-
-	FadeIn(6);
-	setTimeout(FadeOut, blockFadeoutTime,6)
-
-
-}
-break;
-
-case 8://
-PcAd();
-MicroCodeCounter++;
-if(display){
-	FadeIn(8);
-	setTimeout(FadeOut, blockFadeoutTime,8)
-
-
-}
-break;
-
-case 7://
-NullMc();
-
-if(display){
-	FadeIn(14);
-	setTimeout(FadeOut, blockFadeoutTime,14)
-
-
-}
-break;
-
-case 9://
-IncPc();
-MicroCodeCounter++;
-if(display){
-	FadeIn(17);
-	setTimeout(FadeOut, blockFadeoutTime,17)
-
-
-}
-break;
-
-case 10://
-IncPc0();
-MicroCodeCounter++;
-
-if(display){
-	FadeIn(16);
-	setTimeout(FadeOut, blockFadeoutTime,16)
-
-
-}
-break;
-
-case 19://
-Halt();
-MicroCodeCounter++;
-
-if(display){
-	FadeIn(15);
-	setTimeout(FadeOut, blockFadeoutTime,15)
-
-
-}
-break;
-
-default:
-console.log("Ungültiger Befehl " +MicroCode[MicroCodeCounter] + "in Adresse " + MicroCodeCounter + " programm wird beendent");
-alert("Kein Befehl in Microcodeadresse " + MicroCodeCounter + " Das Programm wird beendet")
-Halt();
-NullMc();
-break
-
-}//switch
-document.getElementById("MicoCodeCounter").innerText = zeroPad(MicroCodeCounter,ramLength -1);
-
-	if(MicroCodeCounter >0){
-	document.getElementsByClassName("MicroCodeTable")[MicroCodeCounter-1].style.background = ""
-	}
-	highlightMc(MicroCodeCounter)
-
+  
+  highlightMc(mcCounter_);
 }
 
 
+function renderSignal(display,id) {
+  if (display) {
+    FadeIn(id);
+    setTimeout(FadeOut, blockFadeoutTime, id);
+  }
+}
 
-
-//Funktionen des MicroCode
 function RamDb(){
-	Datenbus = Ram[Addressbus];
+  const {addressBus,ram}=Alpine.store('default')
+	Alpine.store('default').dataBus = ram[addressBus];
 	highlightRamAccess()
-	document.getElementById("DataBus").innerHTML = zeroPad(Datenbus,ramLength+1);
 	aufnehmen(2);
 }
 
 
 function DbRam(){
-	writeToRam(Datenbus,Addressbus)
+  const {addressBus,dataBus}=Alpine.store('default')
+	writeToRam(dataBus,addressBus)
 	highlightRamAccess()
 	aufnehmen(1);
 }
 
-function DbAcc(){
-	Akkumulator = Datenbus;
-	document.getElementById("Accumulator").innerHTML = zeroPad(Akkumulator,ramLength +1 )
+function DbAcc() {
+  const {dataBus} =Alpine.store('default')
+  Alpine.store('default').accumulator = dataBus;
 
-	if(Akkumulator == 0){
-		FadeIn(9);
-	}else{
-		FadeOut(9);
-
-	}
-aufnehmen(18);
+  aufnehmen(18);
 }
 
-
-
 function AccDb(){
-	Datenbus = Akkumulator;
-	document.getElementById("DataBus").innerHTML = zeroPad(Datenbus,ramLength +1 )
+  const {accumulator} =Alpine.store('default')
+	Alpine.store('default').dataBus = accumulator;
 	aufnehmen(15);
 }
 
 function NullAcc(){
-	Akkumulator=0;
-	document.getElementById("Accumulator").innerHTML ="00000";
-	FadeIn(9);
+	Alpine.store('default').accumulator=0;
 
 	aufnehmen(12);
 }
 
-function IncAcc(){
-	if(Akkumulator<parseInt(1 +"9".repeat(ramLength))){ Akkumulator++};
-	document.getElementById("Accumulator").innerHTML = zeroPad(Akkumulator,ramLength +1 )
-	aufnehmen(16);
-	FadeOut(9);
+function IncAcc() {
+  const {accumulator} = Alpine.store('default')
+  if (accumulator < parseInt(1 + "9".repeat(ramLength))) {
+    Alpine.store('default').accumulator = accumulator + 1;
+  }
+  aufnehmen(16);
+}
 
+function DecAcc() {
+  const {accumulator} = Alpine.store('default')
+  Alpine.store('default').accumulator = accumulator > 0 ? accumulator - 1 : accumulator;
+  aufnehmen(17);
+}
 
+function AddAcc() {
+  const {accumulator,dataBus} = Alpine.store('default')
+  Alpine.store('default').accumulator =
+    accumulator + dataBus < "2" + "0".repeat(ramLength)
+      ? accumulator + dataBus
+      : (1 + "9".repeat(ramLength)).toString();
+  aufnehmen(13);
 
-	}
+}
 
-function DecAcc(){
-	if(Akkumulator>0)Akkumulator--;
-	document.getElementById("Accumulator").innerHTML = zeroPad(Akkumulator,ramLength +1 )
-	if(Akkumulator == 0){
-		FadeIn(9);
-	}else{
-		FadeOut(9);
+function SubAcc() {
+  const {accumulator,dataBus} = Alpine.store('default')
 
-	}
-
-
-
-	aufnehmen(17);
-
-
-	}
-
-function AddAcc(){
-	if(Akkumulator+Datenbus<"2" + "0".repeat(ramLength)){
-	Akkumulator+=Datenbus;
-	}else Akkumulator= (1 +"9".repeat(ramLength)).toString();
-	document.getElementById("Accumulator").innerHTML = zeroPad(Akkumulator,ramLength +1 )
-	aufnehmen(13);
-
-
-	if(Akkumulator == 0){
-		FadeIn(9);
-	}else{
-		FadeOut(9);
-
-	}
-	}
-
-function SubAcc(){
-	if(Akkumulator-Datenbus>=0){
-	Akkumulator-=Datenbus;
-
-	}else {Akkumulator=0;}
-
-	document.getElementById("Accumulator").innerHTML = zeroPad(Akkumulator,ramLength +1 )
-
-if(Akkumulator == 0){
-		FadeIn(9);
-	}else{
-		FadeOut(9);
-
-	}
-	aufnehmen(14);
-	}
+  Alpine.store('default').accumulator= accumulator - dataBus >= 0 ? accumulator - dataBus : 0;
+  aufnehmen(14);
+}
 
 function DbIns(){
-	writeToIns(Datenbus);
+  const {dataBus} = Alpine.store('default')
+	writeToIns(dataBus);
 	aufnehmen(3);
 	}
 
 function InsMc(){
-	console.log( Math.floor(ins/ramSize)*10);
-	writeToMc( Math.floor(ins/ramSize)*10	) //get only the opcode
+  const {instructionRegister} = Alpine.store('default')
+  console.log('insmc', instructionRegister)
+  const opCode = Math.floor(instructionRegister / ramSize) * 10;
+	writeToMc( opCode	) //get only the opcode
 	aufnehmen(5);
+  return opCode
 }
 
 function InsAd(){
-writeToAddressBus(zeroPad(ins,ramLength +1).substr(2,ramLength + 1));
-aufnehmen(4);
+  const {instructionRegister} =Alpine.store('default')
+  const address = zeroPad(instructionRegister, ramLength + 1).substr(2, ramLength + 1);
+  writeToAddressBus(parseInt(address));
+  aufnehmen(4);
 }
 
 
 function InsPc(){
-	writeToPc(zeroPad(ins,ramLength +1).substr(2,ramLength + 1))
+  const {instructionRegister} =Alpine.store('default')
+	writeToPc(zeroPad(instructionRegister,ramLength +1).substr(2,ramLength + 1))
 	aufnehmen(11);
 	}
 
 function PcAd(){
-	writeToAddressBus(Programmzaeler);
+  const {programmCounter} = Alpine.store('default')
+	writeToAddressBus(programmCounter);
 	aufnehmen(8);
 	}
 
@@ -368,23 +255,31 @@ function NullMc(){
 //	document.getElementById("MicroCodeCaption").innerHTML = "000";
 	writeToMc(0)
 	aufnehmen(7);
-
+  return 0
 }
 
-function IncPc(){
-if(Programmzaeler< parseInt("9".repeat(ramLength-1))){
-writeToPc(Programmzaeler +1)
+function IncPc() {
+  const {programmCounter} = Alpine.store('default')
 
-}
-aufnehmen(9);
-}
-
-function IncPc0(){
-if(Programmzaeler< parseInt("9".repeat(ramLength-1)) && Akkumulator == 0){
-writeToPc(Programmzaeler +1)
+  if (programmCounter < maxAdress()) {
+    writeToPc(programmCounter + 1);
+  }
+  aufnehmen(9);
 }
 
-aufnehmen(10);
+function maxAdress() {
+  return parseInt("9".repeat(ramLength - 1));
+}
+
+function IncPc0() {
+  const {programmCounter,accumulator} = Alpine.store('default')
+  if (
+    programmCounter < maxAdress() && accumulator == 0
+  ) {
+    writeToPc(programmCounter + 1);
+  }
+
+  aufnehmen(10);
 }
 
 

@@ -1,53 +1,43 @@
 //Funktionen zum Schreiben in Busse/Ram
-function writeToRam(Value,Address){
-	Ram[Address] = Value;
-	document.getElementsByClassName("col2")[Address].innerHTML = zeroPad(Value,ramLength +1).substr(0, 2)+ "." + zeroPad(Value,ramLength +1).substr(2,ramLength +1)
-	//document.getElementsByClassName("col3")[Address].innerHTML ="";
-	AddOpnd(Address);
-	localStorage.setItem('johnny-ram', JSON.stringify(Ram));
-	}
+function writeToRam(value, address) {
+  if (address > 999) return;
+
+  //effect
+  Alpine.store('default').ram[address] = parseInt(value);
+  ramToStorage(Alpine.store('default').ram);
+}
+
+
+
+function lowVal(Value) {
+	return zeroPad(Value, ramLength + 1).substr(2, ramLength + 1);
+}
+
+function highVal(Value) {
+	return zeroPad(Value, ramLength + 1).substr(0, 2);
+}
 
 function writeToAddressBus(number){
-
-	Addressbus = parseInt(number);
-	document.getElementById("AddressBus").innerText = zeroPad(Addressbus,ramLength -1)
+	Alpine.store('default').addressBus=number
 }
 
 function writeToIns(number){
-	ins = parseInt(number);
-	document.getElementById("InsHi").innerText = zeroPad(number,ramLength +1).substr(0, 2);
-	document.getElementById("InsLow").innerText = zeroPad(number,ramLength +1).substr(2,ramLength +1)
+	Alpine.store('default').instructionRegister=number
 }
 
 
 function writeToDb(number){
-	Datenbus = parseInt(number);
-	document.getElementById("DataBus").innerText =zeroPad(number,ramLength +1)
+	Alpine.store('default').dataBus = parseInt(number);
 }
 
 function writeToMc(number){
-	document.getElementsByClassName("MicroCodeTable")[MicroCodeCounter].style.background = ""
-
-	MicroCodeCounter = parseInt(number);
-	document.getElementById("MicoCodeCounter").innerText =zeroPad(number,ramLength-1)
-
-
-
-	//highlighten der spalte
-	highlightMc(MicroCodeCounter)
-
+	console.log('writetoMC',number)
+	Alpine.store('default').mcCounter = parseInt(number)
+	//highlightMc(MicroCodeCounter)
 }
 
-function writeToAcc(number){
-
-	Akkumulator =parseInt(number);
-	document.getElementById("Accumulator").innerText =zeroPad(number,ramLength +1);
-
-}
 
 function writeToPc(number){
-
-	Programmzaeler =parseInt(number);
-	document.getElementById("ProgrammCounter").innerText =zeroPad(number,ramLength -1);
-	EditRam(Programmzaeler);
+	Alpine.store('default').programmCounter =number;
+	EditRam(number);
 }

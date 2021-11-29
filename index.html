@@ -26,35 +26,51 @@ mit dank an Dr. Peter Dauscher
 <head>
 	<meta name="viewport" content="width=device-width, height=device-height,initial-scale=1.0">
 	<meta charset="utf-8"/>
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
 	<link rel="stylesheet" href="./ios-pwa-promt/promt_pwa.css">
 	<link rel="stylesheet" type="text/css" href="./style.css">
 	<link rel="manifest" href="./johnny.webmanifest">
 	<link rel="apple-touch-icon" sizes="256x256" href="./icons/firefox/firefox-general-256-256.png">
-	<title>Johnny 2.0</title>
-
+	<title>Johnny 2.0</title>	
+	<script src="//unpkg.com/alpinejs" defer></script>
+	<script src="//cdn.jsdelivr.net/npm/ramda@0.27.1/dist/ramda.min.js"></script>
 	<script>
-	var LoadStart = new Date().getTime();//this is so that the splash screen is always on for the same time
+		var LoadStart = new Date().getTime();//this is so that the splash screen is always on for the same time
 
-	if ('serviceWorker' in navigator) {
-  	navigator.serviceWorker.register('./service-worker.js'); //for testing this should be commented out so the reloading does take the cached conntent
-	}
-
-
+		if ('serviceWorker' in navigator) {
+			//navigator.serviceWorker.register('./service-worker.js'); //for testing this should be commented out so the reloading does take the cached conntent
+		}
 	</script>
 </head>
 
-<body onload="initialize()">
-<div id="startscreen">
-<p style="  font-size:15vmin ">Johnny 2.0</p>
-<p style="  font-size:7vmin " id="loading">Loading</p>
-<p style="  font-size:6vmin ">Simulation of a simplified Von Neumann Computer</p>
-<p style="  font-size:4vmin">David Laubersheimer</p>
-<p style="  font-size:4vmin ">2019-2021</p>
-<p style="  font-size:4vmin">Peter Dauscher</p>
-<p style="  font-size:4vmin ">2009-2014</p>
-</div>
+<body class="bg-gray-700 w-full h-full bg-100wh bg-no-repeat">
 
-<div id="programm" style="display : none">
+	
+		<div 
+	class="flex flex-col text-center text-gray-400 bg-gray-700 w-screen h-screen " 
+	x-show="$store.default.showStartScreen"
+	x-on:click.once="keyDownHandler()"
+	x-on:keyup.escape.window.once="keyDownHandler()"
+	x-init
+	>
+		<p class="text-[15vmin]">Johnny 2.0</p>
+		<p class="text-[7vmin]" x-text="$store.default.loadMsg">Loading</p>
+		<p class="text-[6vmin]">Simulation of a simplified Von Neumann Computer</p>
+		<p class="text-[4vmin]">David Laubersheimer</p>
+		<p class="text-[4vmin]">2019-2021</p>
+		<p class="text-[4vmin]">Peter Dauscher</p>
+		<p class="text-[4vmin]">2009-2014</p>
+		</div>
+
+<div 
+x-data="{
+	drows: ['NullaccHighlight', 'IncaccHighlight','DecaccHighlight','NullMcHighlight','HaltButtonHighlight','IncPc0Highlight','IncPcHighlight']}" 
+id="programm" 
+x-show="!$store.default.showStartScreen"
+x-init
+x-cloak
+>
 	<!-- Bilder die die Datenbewegung anzeigen (reinfolge nicht verändern!) -->
 	<img src="./images/datamovement/dbram.png"  class="dataMovement"></img>
 	<img src="./images/datamovement/ramdb.png"  class="dataMovement"></img>
@@ -65,194 +81,320 @@ mit dank an Dr. Peter Dauscher
 	<img src="./images/datamovement/insad.png"  class="dataMovement"></img>
 	<img src="./images/datamovement/inspc.png"  class="dataMovement"></img>
 	<img src="./images/datamovement/pcad.png"  class="dataMovement"></img>
-	<img src="./images/datamovement/equalZero.png"  class="dataMovement" style="display:block"></img>
-	<img src="./images/datamovement/crtCover.png" class="dataMovement" style="display:block"></img>
-	<div class="dataMovement" id="NullaccHighlight"></div>
-	<div class="dataMovement" id="IncaccHighlight"></div>
-	<div class="dataMovement" id="DecaccHighlight"></div>
-	<div class="dataMovement" id="NullMcHighlight"></div>
-	<div class="dataMovement" id="HaltButtonHighlight"></div>
-	<div class="dataMovement" id="IncPc0Highlight"></div>
-	<div class="dataMovement" id="IncPcHighlight"></div>
-
-
+	<img src="./images/platzhalter.png"  class="dataMovement hidden" ></img>
+	<img src="./images/platzhalter.png" class="dataMovement hidden" ></img>
+	<div class="flex items-center justify-center fixed w-[37vw] h-[73vmin] top-[19vh] left-[36.5vw] bg-gray-400 z-20 text-2xl font-bold text-gray-600 "
+	x-show="!$store.default.showDetailControl" 
+	x-transition.opacity
+	>
+	CONTROL UNIT
+</div>
+	
+	
+	<!-- <template 
+			x-for="row in drows">
+			<div class="dataMovement" :id="row"/>
+	</template> -->
+	
 
 
 	<!--Bilder der Kopfzeile -->
-	<div id="ramOptions">
-	<abbr title="New Ram"><img tabindex=0 src="./images/new_macro.svg" onclick="newRam()" class="icon" ></img></abbr>
-	<abbr title="Save ram as Johnny file"><img tabindex=0 src="./images/save_ram.svg" onclick="downloadRam()" class="icon" ></img></abbr>
-	<abbr title="Load ram file "><img tabindex=0 src="./images/open_ram.svg"  onclick="uploadRam()" class="icon" ></img></abbr>
-	<img src= "./images/platzhalter.png"class="icon"</img> <!-- dient als abstandshalter -->
-	<img src= "./images/platzhalter.png"class="icon"</img>
+	<div  class="flex justify-between z-20 fixed items-center p-4 w-[100vw] bg-gray-500">
+		<div class="flex space-x-8 ">
+			<div class="flex space-x-2 items-center ">
+				<abbr title="New Ram"><img tabindex=0 src="./images/new_macro.svg" onclick="newRam()" class="icon"></img></abbr>
+				<abbr title="Save ram as Johnny file"><img tabindex=0 src="./images/save_ram.svg" onclick="downloadRam()"
+						class="icon"></img></abbr>
+				<abbr title="Load ram file "><img tabindex=0 src="./images/open_ram.svg" onclick="uploadRam()"
+						class="icon"></img></abbr>
+			</div>
+	
+			<div class="flex space-x-2 items-center">
+				<abbr title="One macro step"><img tabindex=0 src="./images/macro_step.svg" onclick="SingleMacroStep()"
+						class="icon blackborder"></img></abbr>
+				<abbr title="Run Programm"><img tabindex=0 src="./images/macro_run.svg" onclick="executeProgramm()"
+						class="icon blackborder"></img></abbr>
+			
+				<abbr title="Programm execution speed"><input type="range" min="0" max="3000" step="1.0" "
+						class="w-[7vw]"
+						x-model="$store.default.executionSpeed"
+						x-on:change.debounce="updateSpeed"
+						></abbr>
+				<abbr title="Pause programm"><img tabindex=0 src="./images/macro_pause.svg" onclick="pauseProgramm()"
+						class="icon blackborder"></img></abbr>
+				<abbr title="Reset"><img tabindex=0 src="./images/reset.png" onclick="resetComputer()"
+						class="icon blackborder"></img></abbr>
+			</div>
+			
+			<div id="controlUnitToggle" class="flex space-x-2">
+				<abbr title="show control unit"><img tabindex=0 src="./images/show_control.svg" class="w-[5.4vmin] h-[4vmin] max-w-[100vw] max-h-[100vh]" id="crtIcon"></img
+						tabindex=0></abbr>
+				<abbr title="show control unit"><input id="controlUnitCheckbox" type="checkbox"
+						 
+						x-model="$store.default.showDetailControl"></abbr>
+			</div>
+			<div id="mcOptions" class="flex space-x-2 items-center"
+				x-show="$store.default.showDetailControl"
+			>
+				<abbr title="new microcode"><img src="./images/new_micro.svg" onclick="resetMicrocode()" class="icon"></img></abbr>
+				<abbr title="One micro step"><img tabindex=0 src="./images/micro_step.svg" onclick="microStep(true)"
+						class="icon blackborder"></img></abbr>
+				<abbr title="Save microcode as mc file"><img tabindex=0 src="./images/save_micro.svg" onclick="downloadMc()"
+						class="icon"></img></abbr>
+				<abbr title="load microcode file"><img tabindex=0 src="./images/open_micro.svg" onclick="uploadMc()"
+						class="icon"></img></abbr>
+			</div>
+	
+			<div class=" flex space-x-2 items-center px-1"
+				:class="$store.default.recordBlink"
+				x-show="$store.default.showDetailControl"
+			>
+				<abbr title="Record macrocode"><img tabindex=0 src="./images/record_macro.svg" onclick="aufnahme()"
+						class="icon"></img></abbr>
+				<abbr title="Address in micro programm memory of new Macrocode ">
+					<input class="w-[5vmin] text-sm px-1" type="number" istep="10" x-model="$store.default.recordNum"
+						min="0" max="200" ></abbr>
+				<abbr title="Name of new macro program">
+					<input class="w-[5vmin] text-sm px-1" type="text" x-model="$store.default.recordName" maxlength="5" ></abbr>
+			</div>
+		</div>
 
+			<abbr title="Settings">
+				<div
+				x-on:click="$store.default.showModal=true"
+				class="mr-6"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-[4vmin] w-full text-gray-600 stroke-current stroke-2" fill="none"  viewBox="0 0 24 24" >
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+					  </svg> 
+				</div>
+				</abbr>
 
-
-	<abbr title="One macro step"><img tabindex=0 src="./images/macro_step.png"  onclick="SingleMacroStep()" class="icon blackborder"></img></abbr>
-	<abbr title="Run Programm"><img tabindex=0 src="./images/macro_run.png"  onclick="executeProgramm()" class="icon blackborder"  ></img></abbr>
-
-	<abbr title="Programm execution speed"><input type="range" min="0" max="3000" step="1.0" onchange="updateSpeed()" id="executeSpeedSlider"></abbr>
-	<abbr title="Pause programm"><img tabindex=0 src="./images/macro_pause.png"  onclick="pauseProgramm()" class="icon blackborder"  ></img></abbr>
-	<abbr title="Reset"><img tabindex=0 src="./images/reset.png"  onclick="resetComputer()"  class="icon blackborder"  ></img></abbr>
 	</div>
+	<div class="fixed left-[14.7vw] top-[7.5vh]  text-[2vmin] font-medium text-gray-400 ">MEMORY</div>
+	<div class="fixed left-[47vw] top-[7.5vh]  text-[2vmin] font-medium text-gray-400 ">CONTROL UNIT</div>
+	<div class="fixed left-[77vw] top-[7.5vh]  text-[2vmin] font-medium text-gray-400 ">ARITHMETIC LOGIC UNIT</div>
 
-	<div id="mcOptions" class="control">
-	<abbr title="new microcode"><img src="./images/new_micro.svg"  onclick="resetMicrocode()" class="icon" ></img></abbr>
-	<abbr title="One micro step"><img tabindex=0 src="./images/micro_step.png"  onclick="microStep(true)" class="icon blackborder" ></img></abbr>
-	<abbr title="Save microcode as mc file"><img tabindex=0 src="./images/save_micro.svg" onclick="downloadMc()" class="icon" ></img></abbr>
-	<abbr title="load microcode file"><img tabindex=0 src="./images/open_micro.svg"  onclick="uploadMc()" class="icon"></img></abbr>
+	<div class="flex items-center fixed left-[14.7vw] top-[12vh] h-[7vh] w-[59vw] border border-red-800 text-gray-100 bg-blue-500">
+		<div class="text-4xl w-1/2 text-center">Address Bus</div>
+		<p class="text-2xl w-1/2 text-center" x-text="$store.default.r_addressBus()" />
 	</div>
-
-
-	<div id="controlUnitToggle">
-	<abbr title="show control unit"><img tabindex=0 src="./images/show_control.svg"  id="crtIcon"  ></img tabindex=0></abbr>
-	<abbr title="show control unit"><input id="controlUnitCheckbox" type="checkbox" onchange="ToggleControlUnit()"></abbr>
+	<div class="flex items-center fixed left-[14.7vw] top-[91.8vh] h-[7vh] w-[82vw] text-gray-100 bg-green-500 border border-red-800">
+		<div class="text-4xl w-1/2 text-center">Data Bus</div>
+		<p class=" text-2xl w-1/2 text-center" x-text="$store.default.r_databus()"/>
 	</div>
-
-
-	<div id="recordMcPanel" class="control">
-	<abbr title="Record macrocode"><img tabindex=0 src="./images/record_macro.svg"  onclick="aufnahme()" class="icon" ></img></abbr>
-	<abbr title="Address in micro programm memory of new Macrocode "><input type="number" id="aufnahmeZahl"   step="10" min="0" max="200" value="110"></abbr>
-	<abbr title="Name of new macro program"><input type="text" id="aufnahmeName"  maxlength="5" value="NN"></abbr>
-	<!--<button onclick="toggleBonsai"></button> how tf did this slip troug TODO: was this neded in any way? -->
+	<div class="fixed left-[85.8vw] top-[41vh] w-[11vw] h-[19.5vh]  border border-red-800 bg-gray-500 p-2">
+		<p class="text-right pr-2 pb-1 text-gray-400 font-semibold text-xs"> Accumulator</p>
+		<p class="text-center text-[3vmin] text-gray-100" x-text="$store.default.r_accumulator()"/>
 	</div>
+	<div class="flex flex-col   fixed left-[44.7vw] top-[36.5vh]  w-[10vw] h-[6vh] p-1 bg-gray-500 border border-red-800">
 
+		<p class="text-right px-1 pb-1 text-gray-400 font-semibold text-xs">Instruction Register</p>
+		<p id="InstructionalRegister" 
+		class=" text-2xl text-center"
+		x-show="$store.default.showDetailControl">
+			<span class="text-red-500" x-text="$store.default.r_instructHi()">00</span>.
+			<span class="text-blue-500" x-text="$store.default.r_instructLo()" >000</span>
+		</p>
+	</div>
+	
+	<div class="flex flex-col fixed left-[64.5vw] top-[36.5vh] w-[10vw] h-[6vh] p-1 bg-gray-500 border border-red-800"
+	x-show="$store.default.showDetailControl"
+	>
+		<p class=" text-right px-1 pb-1 text-gray-400 font-semibold text-xs" >Programm Counter</p>
+		<p class=" text-2xl text-gray-100 text-center" x-text="$store.default.r_programmCounter()" >000</p>
+	</div>
+	<div 
+	class="fixed left-[78.8vw] top-[47vh] w-[4vw]  border border-red-800 px-1 rounded"
+	:class="{'bg-yellow-200' : $store.default.is_accuZero()}">
+		<p class=" text-[2.2vmin] text-gray-400"> =0?</p>
+	</div>
+	<div class="flex flex-col space-y-1 fixed left-[5vw] top-[93vh] w-[5vw] text-sm">
+		<input type="number" id="DataBusInput" class="border border-solid border-gray-400 px-1" x-model="$store.default.DataBusInput" @keydown.enter="ManuellDb">
+		<abbr title="set Data Bus"><button onclick="ManuellDb()" id="DbInputButton" class="w-full btn">Set Db</button> </abbr>
+	</div>
+	<div class="flex flex-col space-y-1 fixed left-[5vw] top-[13.5vh] w-[5vw] text-sm">
+		<input type="number" id="AddressBusInput" min="0" max="999" class="border border-solid border-gray-400 px-1" x-model="$store.default.AddressBusInput" @keydown.enter="ManuellAB">
+		<abbr title="set Address Bus"><button onclick="ManuellAB()" id="ABInputButton" class="w-full btn">Set Ab</button> </abbr>
+	</div>	
 
-	<!-- Trigger/Open The Modal -->
-	<button id="settings_button">settings</button>
-
-
-
-
-	<input type="number" id="AddressBusInput" min="0" max="999">
-	<input type="number" id="DataBusInput">
-	<p id="AddressBus">000</p>
-	<p id="DataBus">00000</p>
-	<p id="Accumulator">00000</p>
-	<p id="InstructionalRegister" class="control"><span style="color:#E5002D; font-size:3vmin" id="InsHi">00</span>.<span style="color:#207DFF; font-size:3vmin" id="InsLow">000</span></p>
-	<p id="ProgrammCounter" class="control">000</p>
-	<p id="MicoCodeCounter" class="control">000</p>
-	<p id="programmCounterText" class="control">Programm Counter</p>
-	<p id="equalZeroText">=0?</p>
-	<abbr title="set Data Bus"><button onclick="ManuellDb()" id="DbInputButton">ManuellDb</button> </abbr>
-	<abbr title="set Address Bus"><button onclick="ManuellAB()" id="ABInputButton">ManuellAb</button> </abbr>
-
-	<button onclick="RamDbClick()" id="RamDbButton">ram-->db</button>
-	<button onclick="DbRamClick()" id="DbRamButton">db-->ram</button>
-	<button onclick="DbAccClick()" id="DbAccButton">db-->acc</button>
-	<button onclick="AccDbClick()" id="AccDbButton">acc-->db</button>
-	<button onclick="NullAccClick()" id="NullAccButton" class="hiddenInBonsai">acc=0</button>
-	<button onclick="IncAccClick()" id="IncAccButton">acc++</button>
-	<button onclick="DecAccClick()" id="DecAccButton">acc--</button>
-	<button onclick="AddAccClick()" id="AddAccButton" class="hiddenInBonsai">plus</button>
-	<button onclick="SubAccClick()" id="SubAccButton" class="hiddenInBonsai">minus</button>
-	<button onclick="DbInsClick()" id="DbInsButton" class="control">db-->ins</button>
-	<button onclick="InsMcClick()" id="InsMcButton" class="control">ins-->mc</button>
-	<button onclick="InsAdClick()" id="InsAbButton" class="control">ins-->ab</button>
-	<button onclick="InsPcClick()" id="InsPcButton" class="control" >ins-->pc</button>
-	<button onclick="PcAdClick()" id="PcAbButton" class="control">pc-->ab</button>
-	<button onclick="NullMcClick()" id="NullMcButton" class="control">mc:=0</button>
-	<button onclick="IncPcClick()" id="IncPcButton" class="control">pc++</button>
-	<button onclick="IncPc0Click()" id="IncPc0Button" class="control">=0:pc++</button>
-	<button onclick="HaltClick()" id="HaltButton" class="control">stop</button>
+	<button onclick="RamDbClick()" id="RamDbButton" class="fixed left-[21.3vw] top-[85vh] w-[5vw] btn">ram-->db</button>
+	<button onclick="DbRamClick()" id="DbRamButton" class="fixed left-[14.4vw] top-[85vh] w-[5vw] btn">db-->ram</button>
+	<button onclick="DbAccClick()" id="DbAccButton" class="fixed left-[78vw] top-[62vh] w-[5vw] btn">db-->acc</button>
+	<button onclick="AccDbClick()" id="AccDbButton" class="fixed left-[88.9vw] top-[62vh] w-[5vw] btn">acc-->db</button>
+	<div class="flex flex-col space-y-1 fixed left-[88vw] top-[24vh] w-[5vw]">
+		<button onclick="IncAccClick()" id="IncAccButton" class="btn">acc++</button>
+		<button onclick="DecAccClick()" id="DecAccButton" class="btn">acc--</button>
+		<button onclick="NullAccClick()" id="NullAccButton" class="btn" x-show="$store.default.bonsaiMode">acc=0</button>
+	</div>
+	<button onclick="AddAccClick()" id="AddAccButton" class="fixed left-[80.5vw] top-[64vh] w-[5vw] btn"x-show="$store.default.bonsaiMode">plus</button>
+	<button onclick="SubAccClick()" id="SubAccButton" class="fixed left-[80.5vw] top-[67vh] w-[5vw] btn" x-show="$store.default.bonsaiMode">minus</button>
+	<button onclick="DbInsClick()" id="DbInsButton" class="fixed left-[36.5vw] top-[62vh] w-[5vw] btn"x-show="$store.default.showDetailControl">db-->ins</button>
+	<button onclick="InsMcClick()" id="InsMcButton" class="fixed left-[44.3vw] top-[47vh] w-[5vw] btn" x-show="$store.default.showDetailControl">ins-->mc</button>
+	<button onclick="InsAdClick()" id="InsAbButton"class="fixed left-[49.2vw] top-[27vh] w-[5vw] btn" x-show="$store.default.showDetailControl">ins-->ab</button>
+	<button onclick="InsPcClick()" id="InsPcButton" class="fixed left-[56vw] top-[38.5vh] w-[5vw] btn"x-show="$store.default.showDetailControl" >ins-->pc</button>
+	<button onclick="PcAdClick()" id="PcAbButton" class="fixed left-[65.5vw] top-[27vh] w-[5vw] btn" x-show="$store.default.showDetailControl">pc-->ab</button>
+	<div class="flex flex-col space-y-1 fixed left-[65.5vw] top-[44vh] w-[5vw]">
+		<button onclick="IncPcClick()" id="IncPcButton" class="btn" x-show="$store.default.showDetailControl">pc++</button>
+		<button onclick="IncPc0Click()" id="IncPc0Button" class="btn" x-show="$store.default.showDetailControl">=0:pc++</button>
+	</div>
+	<div class="flex flex-col space-y-1 fixed left-[61.5vw] top-[80vh] w-[5vw]">
+		<button onclick="NullMcClick()" id="NullMcButton" class="btn" x-show="$store.default.showDetailControl">mc:=0</button>
+		<button onclick="HaltClick()" id="HaltButton" class="btn" x-show="$store.default.showDetailControl">stop</button>
+	</div>
 
 
 
 	<!--nicht entfernen onclick der Bilder greift hierdrauf zu -->
-	<input type='file' accept='.mc' id='microcodefile' style="display:none">
-	<input type='file' accept='.ram' id='ramfile'style="display:none">
+	<input type='file' accept='.mc' id='microcodefile' style="display:none" x-on:change="readMCFile($el)">
+	<input type='file' accept='.ram' id='ramfile'style="display:none" x-on:change="readRamFile($el)">
 
 
-	<!-- Scollbare Tabelle -->
-<div id="RamDiv">
+	<!-- RamTable -->
+<div id="RamDiv" 
+x-ref="ramdiv"
+class="flex flex-col space-y-1 fixed left-[8vw] top-[23vh] h-[56.5vh] w-[25vw] bg-gray-500 border border-red-800 p-3"
+x-on:resize.window.debounce.500ms="resize()"
+>
+	
+<p class="text-right px-1 pb-1 text-gray-400 font-semibold text-xs">Ram</p>
+<div class="overflow-auto bg-gray-100 text-xs text-gray-600" 
+x-ref="innerramdiv"
+id="innerRamDiv"
+x-init="$el.scrollTop=0">
+	<table class="table w-full" >
+		<thead>
+			<colgroup>
+				<col class="w-1/4">
+				<col class="w-1/4">
+				<col class="w-1/4">
+				<col class="w-1/4">
+			</colgroup>
+			<tr class="bg-gray-500 text-left" >
+				<th class="sticky top-0 bg-gray-300 px-1">Address</th>
+				<th class="sticky top-0 bg-gray-300 px-1">Data</th>
+				<th class="sticky top-0 bg-gray-300 px-1">Asm</th>
+				<th class="sticky top-0 bg-gray-300 px-1">Opnd</th>
+			</tr>
+		</thead>
+		<tbody class="h-full">
+			<template x-for="r in $store.default.r_ram()" >
+				<tr class="border border-gray-200   " 
+				:id="r.id" 
+				:class="{'bg-yellow-200' : r.selected , 'bg-green-400': r.highlight  }" 
+				x-on:click="EditRam(r.id)"
+				x-init="$watch('r.selected', value => {
+					if (value) positionRamInput(r.id,$el,$refs.ramdiv,$refs.ramInput,$refs.innerramdiv)});
+					"
+				>
+					<td class="px-1" x-text="r.id"></td>
+					<td class="px-1" x-text="r.data" />
+					<td class="px-1" x-text="r.asm" />
+					<td class="px-1" x-text="r.op" />
+				</tr>
+			</template>
+		</tbody>
 
 
-	<table cellspacing="0" cellpadding="0" border="0" width="100%">
-  <tr>
-    <td>
-       <table cellspacing="0" cellpadding="0" border="1" width="100%" >
-         <tr style="color:#969696;background-color:#969696">
-            <th width=25%>Address</th>
-				<th width=25%>Data</th>
-				<th width=25%>Asm</th>
-				<th width=25%>Opnd</th>
-         </tr>
-       </table>
-    </td>
-  </tr>
-  <tr>
-    <td>
-       <div style="width:23vw; height:50vh; overflow:auto;" id="innerRamDiv" >
-         <table cellspacing="0" cellpadding="1" border="1" width="100%">
-					<tbody id="RamTBody">
-						<!-- hier wird in table.js die Tabelle eingefügt-->
-					</tbody>
-         </table>
+	</table>
 
+</div>
 
-
-
-
-
-       </div>
-    </td>
-  </tr>
-</table>
-
-
-  </div>
-
-
-
-<div id="MicroCodeDiv" class="control">
-
-
-	<table cellspacing="0" cellpadding="0" border="0" width="100%" >
-  <tr>
-    <td>
-       <table cellspacing="0" cellpadding="1" border="1" width="100%" >
-
-       </table>
-    </td>
-  </tr>
-  <tr>
-    <td>
-       <div style="width:15vw; height:28vh; overflow:auto;" id="testdiv">
-         <table cellspacing="0" cellpadding="1" border="1" width="100%">
-					<tbody id="McTBody">
-
-					</tbody>
-         </table>
-       </div>
-    </td>
-  </tr>
-</table>
-  </div>
+</div>
 
 
 
-<div id="RamEingabe">
-<p></p>
-<input type="Number" id="RamInput" step=0.001>
-<select id="CommandSelect" onchange="CommandSelectChange()">
-</select>
-<button onclick="ManuellRam()" id="RamInputButton">write</button>
-<p></p>
+<div id="MicroCodeDiv" class="flex flex-col space-y-1 fixed left-[44vw] top-[56vh] h-[34vh] w-[17vw] text-xs text-gray-600 bg-gray-500 border border-red-800 p-3"
+	x-show="$store.default.showDetailControl">
+	<div class="flex justify-between items-baseline px-1 ">
+		<p
+		class=" text-3xl text-gray-100"
+		x-show="$store.default.showDetailControl" x-text="$store.default.r_mcCounter()" />
+		<p class="text-right text-gray-400 font-semibold">Micro Code</p>
+	</div>
+	<div class=" h-[28vh] overflow-auto bg-gray-100" 
+	id="testdiv"
+	>
+		<table class="table border-collapse w-full" >
+			<tbody  />
+			<template x-for="r in $store.default.r_microCode()">
+				<tr class="MicroCodeTable border border-gray-200"
+				:class="r.highlight && 'bg-yellow-200'"
+				x-init="$watch( 'r.highlight', v => {if (v) $el.scrollIntoView()})"
+				>
+					<td class="Mccol1" x-text="r.id" />
+					<td class="Mccol2" x-text="r.mc" />
+				</tr>
+			</template>
+		</table>
+	</div>
+
+</div>
+
+
+
+<div id="RamEingabe"
+x-ref="ramInput"
+class="flex items-center fixed left-[0.5vw] top-[45vh] w-[8vw] h-[18vh] bg-100%"
+:style="{top: $store.default.ramInputTop}"
+x-init
+>
+	
+  	<div class="flex flex-col space-y-1 ml-2 w-[5vw] text-sm">
+
+		  <input type="Number" 
+		  id="RamInput" 
+		  step=0.001 
+		  @keydown.enter="ManuellRam"
+		  x-model="$store.default.ramInput"
+		  class="border border-gray-400 border-solid" 
+		  >
+		  <select id="CommandSelect" 
+		  x-on:change="CommandSelectChange()"
+		  class="border border-gray-400 border-solid text-xs" 
+		  x-model="$store.default.commandSelection"
+		  >
+			  <template x-for="o in $store.commandSelect.items">
+				  <option :value="o.id" x-text="o.val"/>
+			  </template>
+		  </select>
+		  <button 
+		  onclick="ManuellRam()" 
+		  id="RamInputButton"
+		 class="btn" 
+		  >write</button>
+		  
+	  </div>
 </div>
 
 
 
 <!-- The Modal -->
-<div id="myModal" class="modal">
+<div id="myModal" 
+	class=" overflow-auto bg-gray-500 bg-opacity-[85%]" 
+	x-show="$store.default.showModal"
+	:class="{ 'absolute inset-0 z-50 flex items-center justify-center': $store.default.showModal }""
+	>
 
- <!-- Modal content -->
- <div class="modal-content">
-	 <span class="close">&times;</span>
-	 <button id="bonsaiModeButton" onclick="toggleBonsai()">bonsai mode</button>
-	 <p>Johnny can also be installed as an app. Click<a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Developer_guide/Installing#the_install_user_experience"  target="_blank"> here</a> to learn how to install Johnny on your device</p>
-	 <p>This programm is licenced under the GNU Affero General Public License. You can find the sourcecode at <a href="https://github.com/laubersheini/johnny">https://github.com/laubersheini/johnny</a></p>
-	 <p>Feel free to report any bugs on the programms <a href="https://github.com/laubersheini/johnny/issues">Github page</a></p>
- </div>
+	<!-- Modal content -->
+	<div class="bg-gray-100 w-4/5 p-5 text-center shadow-xl border-2 border-gray-800 rounded-md" x-on:click.away="$store.default.showModal=false">
+		<span 
+		class="gray-500 float-right text-2xl font-semibold focus:gray-800 cursor-pointer" 
+		x-on:click="$store.default.showModal=false">&times;</span>
+		<button 
+		id="bonsaiModeButton" 
+		class="px-3 py-1 rounded border border-gray-400" 
+		x-on:click="toggleBonsai()"
+		x-text="($store.default.bonsaiMode ? 'bonsai' : 'normal') + ' mode'"></button>
+		<p>Johnny can also be installed as an app. Click<a
+				href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Developer_guide/Installing#the_install_user_experience"
+				target="_blank"> here</a> to learn how to install Johnny on your device</p>
+		<p>This programm is licenced under the GNU Affero General Public License. You can find the sourcecode at <a
+				href="https://github.com/laubersheini/johnny">https://github.com/laubersheini/johnny</a></p>
+		<p>Feel free to report any bugs on the programms <a href="https://github.com/laubersheini/johnny/issues">Github
+				page</a></p>
+	</div>
 
 </div>
 
@@ -341,17 +483,15 @@ mit dank an Dr. Peter Dauscher
 	</div>
 </div>
 
-<script src="./ios-pwa-promt/showPromt.js" charset="utf-8"></script>
+<!-- <script src="./ios-pwa-promt/showPromt.js" charset="utf-8"></script> -->
 
-<script type="text/javascript" src="./promt_pwa.js"></script>
+<!-- <script type="text/javascript" src="./promt_pwa.js"></script> -->
 <script type="text/javascript" src="./viewport-units-buggyfill/viewport-units-buggyfill.js"></script>
 <script type="text/javascript" src="./script.js"></script>
 <script type="text/javascript" src="./microcode.js"></script>
 <script type="text/javascript" src="./table.js"></script>
 <script type="text/javascript" src="./buttons.js"></script>
 <script type="text/javascript" src="./writing.js"></script>
-<script type="text/javascript" src="./bonsai.js"></script>
-<script type="text/javascript" src="./settings.js"></script>
 <script>{
 		let ua = window.navigator.userAgent;
 	//	if( !!ua.match(/iPad/i) || !!ua.match(/iPhone/i)){
