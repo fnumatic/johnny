@@ -413,17 +413,18 @@ function toggleBonsai() {
 }
 
 function ramFromStorage() {
+  const arr= Array(1000).fill(0)
   const thread= R.compose(R.map(parseInt), R.take(1000))
   const storageRam = JSON.parse(localStorage.getItem('johnny-ram'));
-  console.log(ramFromStorage.name, thread(storageRam))
-	return storageRam ?  thread( storageRam ) : null;
+  console.log(ramFromStorage.name, thread(storageRam.concat(arr)))
+	return storageRam ?  thread( storageRam.concat(arr) ) : null;
 }
 
 function ramToStorage(ram) {
   //compress memory
-  //const thread = R.compose(R.reverse,R.dropWhile(x=> x === 0),R.reverse)
-  console.log(ramToStorage.name, ram);
-	localStorage.setItem("johnny-ram", JSON.stringify(ram));
+  const thread = R.compose(R.reverse,R.dropWhile(x=> x === 0),R.reverse)
+  console.log(ramToStorage.name, thread(ram));
+	localStorage.setItem("johnny-ram", JSON.stringify(thread(ram)));
 }
 
 function mcFromStorage() {
