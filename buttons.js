@@ -8,7 +8,7 @@ function FadeOut(number){
 }
 
 function FadeIn(number){
-	console.log('FadeIn',number , indicators[number])
+	console.log(FadeIn.name ,number , indicators[number])
 	if (indicators[number]){
 		indicators[number].style.display="block"
 	}
@@ -103,15 +103,15 @@ function IncPcClick(){
 
 
 function resetComputer(){
-	console.log('resetComputer')
-	writeToAddressBus(0);
-	writeToDb(0);
-	writeToIns(0);
-	writeToMc(0);
+	console.log(resetComputer.name)
+	assocAdressBus(0);
+	assocDatabus(0);
+	assocInstructionRegister(0);
+	assocMcCounter(0);
 	Alpine.store('default').accumulator=0
-	writeToPc(0);
+	assocProgramCounter(0);
 	halt = false;
-	pause = false ;
+	Alpine.store('default').pause = false ;
 
 	clearTimeout(timeoutforexecution); //beenden des Ausführen des programms
 }
@@ -129,40 +129,29 @@ function downloadRam(){
 function CommandSelectChange(){
 	const {ramInput,commandSelection}=Alpine.store('default')
 	const input = ramInput.split(numberDevisionChar)
+	//todo: substr -> lowVal
 	Alpine.store('default').ramInput = zeroPad(commandSelection,2 )+ numberDevisionChar + zeroPad(input.pop(),ramLength +1).substr(2,ramLength);
 
 }
 function ManuellRam() {
   //ignorieren des Punktes der hi und low trennt
   const {ramInput,ramSelected}=Alpine.store('default')
-  const input = ramInput.split(numberDevisionChar);
-  const value = validateNumber(parseInt(input.join("")), ramStr(ramLength), 0);
-  writeToRam(value, ramSelected);
-  nextRamModule();
+  const input = ramInput.split(numberDevisionChar).join("");
+  const value = validateNumber(parseInt(input), maxAccu, 0);
+  assocInRam( ramSelected, value);
+  updateRamSelected(rsel => rsel < maxAdress ? rsel + 1 : rsel )
 }
 
-function ramStr(length) {
-	return (1 + "9".repeat(length)).toString();
-}
-function ramStr2(length) {
-	return "9".repeat(length - 1).toString()
-}
 
 function ManuellDb() {
-  const value = validateNumber(
-    parseInt(Alpine.store('default').DataBusInput),
-    ramStr(ramLength),
-    0
-  );
-  writeToDb(value);
+  const {DataBusInput} = Alpine.store('default')
+  const value = validateNumber(parseInt(DataBusInput), maxAccu, 0);
+  assocDatabus(value);
 }
 function ManuellAB() {
-  const value = validateNumber(
-    parseInt(Alpine.store('default').AddressBusInput),
-    ramStr2(ramLength),
-    0
-  );
-  writeToAddressBus(value);
+	const {AddressBusInput} = Alpine.store('default')
+  const value = validateNumber(parseInt(AddressBusInput), maxAdress, 0);
+  assocAdressBus(value);
 }
 
 

@@ -24,7 +24,6 @@ self.addEventListener('fetch', (e) => {
 
 
 self.addEventListener('activate', event => {
-//  console.log("fgdhjfgh");
   // delete any caches that aren't in expectedCaches
   // which will get rid of static-v1
   event.waitUntil(

@@ -11,7 +11,6 @@ const normalMC="8;2;3;5;0;0;0;0;0;0;12;4;2;13;9;7;0;0;0;0;4;2;13;9;7;0;0;0;0;0;4
 	//daten die zückgesetzt werden müssen
 	var halt = false;
 	//var Eingabe; // evt unbenutzt ?
-	var pause = false;
 	var recording = false;
 	var recordingCounter = 150; //gibt an an welcher stelle
 	//150 zum testen
@@ -36,6 +35,10 @@ const normalMC="8;2;3;5;0;0;0;0;0;0;12;4;2;13;9;7;0;0;0;0;4;2;13;9;7;0;0;0;0;0;4
 
 	const ramSize = 1000  //this ideally has to be a multiple of 10
 	const ramLength = Math.log10(ramSize) +1;
+  const maxAccu = parseInt(1 + "9".repeat(ramLength));
+  const maxAdress = parseInt("9".repeat(ramLength - 1))
+
+
 
 var turboMode = false;
 
@@ -84,7 +87,7 @@ function initStores() {
     r_instructHi(){return highVal(this.instructionRegister)},
     r_instructLo(){return lowVal(this.instructionRegister)},
     programmCounter: 0,
-    r_programmCounter(){return zeroPad(this.programmCounter,ramLength +1)},
+    r_programCounter(){return zeroPad(this.programmCounter,ramLength +1)},
     NullaccHighlight: false,
     IncaccHighlight: false,
     DecaccHighlight: false,
@@ -95,6 +98,7 @@ function initStores() {
     showStartScreen: true,
     commandSelection: 0,
     recordNum: 110,
+    pause: false,
   });
 }
 
@@ -105,7 +109,7 @@ function initEffects(){
 }
 
 function initialize() {
-  console.log("initialize...");
+  console.log(initialize.name);
   //toggleFullScreen()
   Alpine.store('default').ram= ramFromStorage() || R.range(0, ramSize).map((_) => 0);
   Alpine.store('default').microCode=  mcFromStorage() || resetMicrocode();
@@ -126,12 +130,20 @@ function initialize() {
   }
 }
 
+function resetRam(){
+  Alpine.store('default').ram = R.range(0, ramSize).map(_ => 0);
+}
+function newRam(){
+  initialize();
+  resetRam();
+}
+
 function resetMicrocode() {
   return normalMC.split(";");
 }
 
 function fadeOutStartScreen(){//für verzögertes ausblenden des Startblidschirms(frühstens nach startScreenFadeOutTime ms  )
-	console.log('fadeOutStartScreen')
+	console.log(fadeOutStartScreen.name)
 	Alpine.store('default').showStartScreen=false
 
 	//dinge die nach dem Anzeigen gemacht werden müssen
@@ -147,7 +159,7 @@ function keyDownHandler(){
 }
 
 function resize(){
-  console.log('resize this')
+  console.log(resize.name)
 
 	//needed for the Safari fix
 	scrollMaxX = document.body.scrollWidth - window.innerWidth;
@@ -164,17 +176,17 @@ function resize(){
 
 function validateNumber(X,maxValue,minValue){
   //Überprüft ob nur Zaheln eingegeben wurden +Größe der Zahlen
-  if (X <= maxValue && typeof X == "number" && X >= minValue) {
+  if (X <= maxValue && X >= minValue) {
     return X;
   } else if (X > maxValue) {
     return maxValue;
   } else {
-    return 0;
+    return minValue;
   }
 }
 
 function updateSpeed(speed){
-  console.log('update speed')
+  console.log(updateSpeed.name)
 	turboMode = 3000 - speed == 0;
 }
 
@@ -198,37 +210,38 @@ function aufnahmeBlinken(){
 
 function aufnahme(){
   const {recordNum,recordName}=Alpine.store('default')
-	if(recording){
-		recording = false;
-		clearTimeout(timeoutforblinking);
-    Alpine.store('default').recordBlink=""
-	}else{
-		recording = true;
-		recordingCounter = Math.floor(validateNumber(parseInt(recordNum),200,0)/10)*10 // ignorieren der letzen stelle
-		Alpine.store('default').microCode[recordingCounter/10+200] = recordName; //speichern des Namens
-    //todo: default append name on recording 
+	if (recording) {
+    recording = false;
+    clearTimeout(timeoutforblinking);
+    Alpine.store("default").recordBlink = "";
+  } else {
+    recording = true;
+    recordingCounter =
+      Math.floor(validateNumber(parseInt(recordNum), 200, 0) / 10) * 10; // ignorieren der letzen stelle
+    assocInMicrocode(recordingCounter / 10 + 200, recordName);
+    //todo: default append name on recording
     //Alpine.store('default').microCode[recordingCounter].id = recordingCounter + "   " + Alpine.store('default').microCode[recordingCounter/10+200] + ":" ;//name im Mc Tabelle einfügen
 
-		for(i= recordingCounter;i<recordingCounter+10;i++){//zurückseten der Befehle im Mc
-			Alpine.store('default').microCode[i] = 0;
-		}
+    for (i = recordingCounter; i < recordingCounter + 10; i++) {
+      assocInMicrocode(i, 0);
+    }
 
-
-		//springen im Mc
+    //springen im Mc
     //todo: recordingCounter - 10 first element of gui list
 
-	//als option bei der Eingabe einfügen
-  Alpine.store("commandSelect").items.push(
-    {id:recordingCounter/10, val:zeroPad(recordingCounter/10) + ": " +  Alpine.store('default').microCode[recordingCounter/10+200]})
-	
-	aufnahmeBlinken();
+    //als option bei der Eingabe einfügen
+    Alpine.store("commandSelect").items.push({
+      id: recordingCounter / 10,
+      val: zeroPad(recordingCounter / 10) + ": " + recordName,
+    });
 
-	}
+    aufnahmeBlinken();
+  }
 }
 
 function aufnehmen(befehl) {
   if (recording) {
-    Alpine.store('default').microCode[recordingCounter] = befehl; //schreiben des Befehls in mc
+    assocInMicrocode(recordingCounter,befehl)
     //springen beim aufnehmen
     //todo: recordingCounter - 10 first element of gui list
  
@@ -237,24 +250,22 @@ function aufnehmen(befehl) {
     recordingCounter++;
   } //if
 }
-var maxRecursion = 15
-var currentRecursions = 0;
+const maxRecursion = 15
 
 
-function executeProgramm() {
+function executeProgram(currentRecursions) {
+  console.log(executeProgram.name, currentRecursions,maxRecursion);
   SingleMacroStep();
-  pause = false;
   const {programmCounter,executionSpeed}=Alpine.store('default')
+  Alpine.store('default').pause=false
 
   if (!halt && alterProgrammzaeler != programmCounter) {
     // beenden beim Halt und bei endlosschleifen durch fehlende oder einen jmp befehl auf die selbe adresse
     if (currentRecursions < maxRecursion && turboMode) {
-      currentRecursions++;
       alterProgrammzaeler = programmCounter;
-      executeProgramm();
+      executeProgram(currentRecursions + 1);
     } else {
-      timeoutforexecution = setTimeout(executeProgramm, executionSpeed);
-      currentRecursions = 0;
+      timeoutforexecution = setTimeout(executeProgram, executionSpeed,0);
     }
 
     alterProgrammzaeler = programmCounter;
@@ -277,7 +288,7 @@ function readMCFile() {
   var reader = new FileReader();
   reader.onload = function (progressEvent) {
     const mc = this.result.split("\n").map(eventualNum)
-	Alpine.store('default').microCode= mc
+  assocMicrocode(mc)  
   renderCommandSelect(mc)
 
   };
@@ -323,35 +334,20 @@ function download(data, filename, type) {
   }
 }
 
-function pauseProgramm() {
-  const {executionSpeed}=Alpine.store('default')
+function pauseProgram() {
+  const {executionSpeed,pause}=Alpine.store('default')
   if (!pause) {
     clearTimeout(timeoutforexecution);
-    pause = true;
+    Alpine.store('default').pause = true;
   } else {
-    timeoutforexecution = setTimeout(executeProgramm, executionSpeed);
-    pause = false;
+    timeoutforexecution = setTimeout(executeProgram, executionSpeed,0);
+    Alpine.store('default').pause = false;
   }
-}
-
-function nextRamModule() {
-  const {ramSelectet}=Alpine.store('default')
-  if (ramSelectet < parseInt("9".repeat(ramLength - 1))) {
-    ramSelectet++;
-  }
-
-  Alpine.store('default').ramSelected = ramSelectet;;
-
 }
 
 function EditRam(CellNumber) {
-  const {ramSelected}=Alpine.store('default')
   if (!turboMode) {
-    
-    if (ramSelected != CellNumber) {
-      console.log("select",{CellNumber})
-      Alpine.store('default').ramSelected = CellNumber;
-    }
+    updateRamSelected( _ => CellNumber)
   }
 }
 
@@ -366,27 +362,16 @@ function positionRamInput(idx, selRow, ramdiv, raminp, innerrd) {
       : innerrd.scrollTop;
   const top = selRowTop - raminpHeight / 2 + tableHeight / 2 + "px";
 
-  console.log("positionRamInput",{selRowTop,ramDivBottom,irdtop, tableHeight, top})
+  console.log(positionRamInput.name,{selRowTop,ramDivBottom,irdtop, tableHeight, top})
   //effect
   Alpine.store('default').ramInputTop = top;
 
   innerrd.scrollTop = irdtop;
 }
 
-function highlightMc(row) {
-  //übernimmt auch springen
-  //springen im Mc
-  if (!turboMode) {
-    Alpine.store('default').mcHighlight=row
-  }
-}
 
-function highlightRamAccess() {
-  const {addressBus,ramHighlight,mcCounter}=Alpine.store('default')
-  const dhrm = mcCounter != 1 ? addressBus : ramHighlight;
-
-  //effect
-  Alpine.store('default').ramHighlight = dhrm
+function highlightRamAccess({addressBus,ramHighlight,mcCounter}) {
+  return mcCounter != 1 ? addressBus : ramHighlight;
 }
 
 /*
@@ -419,7 +404,7 @@ function toggleBonsai() {
 
   //effect
   if (confirm(msg)) {
-    Alpine.store('default').microCode= mc.split(";");
+    assocMicrocode(mc.split(";"))
 
     Alpine.store('default').bonsaiMode = isBonsaiMode;
     renderCommandSelect(Alpine.store('default').microCode)
@@ -430,11 +415,14 @@ function toggleBonsai() {
 function ramFromStorage() {
   const thread= R.compose(R.map(parseInt), R.take(1000))
   const storageRam = JSON.parse(localStorage.getItem('johnny-ram'));
-  console.log("foobarfasfasdddddd")
+  console.log(ramFromStorage.name, thread(storageRam))
 	return storageRam ?  thread( storageRam ) : null;
 }
 
 function ramToStorage(ram) {
+  //compress memory
+  //const thread = R.compose(R.reverse,R.dropWhile(x=> x === 0),R.reverse)
+  console.log(ramToStorage.name, ram);
 	localStorage.setItem("johnny-ram", JSON.stringify(ram));
 }
 

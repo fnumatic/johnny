@@ -1,21 +1,21 @@
 function renderRam(ram, highlight,selected){
 	return ram.map((e,i) => ramTableRow(e, i,highlight,selected));
 }
-function ramTableRow(value,adress,highlight_,selected_){
-  if (typeof value !== 'number') console.log('meep meep, wrong type',value)
-  if (adress > 999)   return
+function ramTableRow(value,address,highlight_,selected_){
+  console.assert(typeof value === 'number')
+  if (address > 999)   return
 
   const {microCode} = Alpine.store('default')
   const hv = highVal(value);
   const lv = lowVal(value);
   const high =  parseInt(hv) + 200;
   const data = hv + "." + lv
-  const highlight= highlight_ == adress
-  const selected= selected_ == adress
+  const highlight= highlight_ == address
+  const selected= selected_ == address
   const [asm,op] = high > 200 && microCode[high] != undefined
   ? [microCode[high], lv]
   : ["",""]
-  return {	id: adress,	data,	asm,	op ,highlight,selected }
+  return {	id: address,	data,	asm,	op ,highlight,selected }
 }
 
 
