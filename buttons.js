@@ -1,16 +1,11 @@
-var indicators= document.getElementsByClassName("dataMovement")
+const indicators = document.getElementsByClassName("dataMovement")
 
+const FadeIn = n => fade(n,"block")
+const FadeOut = n => fade(n,"none")
 
-function FadeOut(number){
-	if (indicators[number])
-		indicators[number].style.display="none";
-
-}
-
-function FadeIn(number){
-	console.log(FadeIn.name ,number , indicators[number])
+function fade(number,display){
 	if (indicators[number]){
-		indicators[number].style.display="block"
+		indicators[number].style.display=display
 	}
 }
 
