@@ -3,7 +3,7 @@ const mccAction={
   inc:1
 }
 
-const stepTable = {
+const opTbl = {
   1: [DbRam, mccAction.inc, 0],
   2: [RamDb, mccAction.inc, 1],
   3: [DbIns, mccAction.inc, 2],
@@ -23,27 +23,34 @@ const stepTable = {
   18: [DbAcc, mccAction.inc, 3],
   19: [Halt, mccAction.inc, 15],
 };
+const mcTbl=Object
+  .keys(opTbl)
+  .reduce((o,k) => ({...o,[opTbl[k][0].name]:k}),{})
+
+function mcEffect(fn, display=true){
+  const op=mcTbl[fn.name]
+  const [,,id]= opTbl[op]
+
+  const res = fn()
+  aufnehmen(op)
+  renderSignal(display, id);
+  return res
+}
+function incEffect (fn,display,mcCounter) {
+  mcEffect(fn,display)
+  return mcCounter + 1;
+}
 function microStep(display) {
   const {microCode,mcCounter}=Alpine.store('default')
   let mcCounter_ = 0
-  const inc= (fn,id,k) =>{
-    fn()
-    mcCounter_ = mcCounter + 1;
-    aufnehmen(k)
-    renderSignal(display, id);
-  }
-  const assign= (fn,id,k) =>{
-    mcCounter_ = fn();
-    aufnehmen(k)
-    renderSignal(display, id);
-  }
-  const mcKey = parseInt(microCode[mcCounter])
-  const [fn,action,id] = stepTable[mcKey]
-  
-  switch (action) {
-    case mccAction.inc: inc(fn,id,mcKey);break;
 
-    case mccAction.assign: assign(fn,id,mcKey);break;
+  const mcKey = parseInt(microCode[mcCounter])
+  const [fn,action] = opTbl[mcKey]
+
+  switch (action) {
+    case mccAction.inc: mcCounter_ = incEffect(fn,display,mcCounter);break;
+
+    case mccAction.assign: mcCounter_ = mcEffect(fn,display);break;
 
     default:
       console.log(

@@ -296,29 +296,29 @@ x-cloak
 		<abbr title="set Address Bus"><button onclick="ManuellAB()" id="ABInputButton" class="w-full btn">Set Ab</button> </abbr>
 	</div>	
 
-	<button onclick="RamDbClick()" id="RamDbButton" class="fixed left-[21.3vw] top-[85vh] w-[5vw] btn">ram-->db</button>
-	<button onclick="DbRamClick()" id="DbRamButton" class="fixed left-[14.4vw] top-[85vh] w-[5vw] btn">db-->ram</button>
-	<button onclick="DbAccClick()" id="DbAccButton" class="fixed left-[78vw] top-[62vh] w-[5vw] btn">db-->acc</button>
-	<button onclick="AccDbClick()" id="AccDbButton" class="fixed left-[88.9vw] top-[62vh] w-[5vw] btn">acc-->db</button>
+	<button onclick="mcEffect(RamDb)" class="fixed left-[21.3vw] top-[85vh] w-[5vw] btn">ram-->db</button>
+	<button onclick="mcEffect(DbRam)" class="fixed left-[14.4vw] top-[85vh] w-[5vw] btn">db-->ram</button>
+	<button onclick="mcEffect(DbAcc)" class="fixed left-[78vw] top-[62vh] w-[5vw] btn">db-->acc</button>
+	<button onclick="mcEffect(AccDb)" class="fixed left-[88.9vw] top-[62vh] w-[5vw] btn">acc-->db</button>
 	<div class="flex flex-col space-y-1 fixed left-[88vw] top-[24vh] w-[5vw]">
-		<button onclick="IncAccClick()" id="IncAccButton" class="btn">acc++</button>
-		<button onclick="DecAccClick()" id="DecAccButton" class="btn">acc--</button>
-		<button onclick="NullAccClick()" id="NullAccButton" class="btn" x-show="$store.default.bonsaiMode">acc=0</button>
+		<button onclick="mcEffect(IncAcc)" class="btn">acc++</button>
+		<button onclick="mcEffect(DecAcc)" class="btn">acc--</button>
+		<button onclick="mcEffect(NullAcc)" class="btn" x-show="$store.default.bonsaiMode">acc=0</button>
 	</div>
-	<button onclick="AddAccClick()" id="AddAccButton" class="fixed left-[80.5vw] top-[64vh] w-[5vw] btn"x-show="$store.default.bonsaiMode">plus</button>
-	<button onclick="SubAccClick()" id="SubAccButton" class="fixed left-[80.5vw] top-[67vh] w-[5vw] btn" x-show="$store.default.bonsaiMode">minus</button>
-	<button onclick="DbInsClick()" id="DbInsButton" class="fixed left-[36.5vw] top-[62vh] w-[5vw] btn"x-show="$store.default.showDetailControl">db-->ins</button>
-	<button onclick="InsMcClick()" id="InsMcButton" class="fixed left-[44.3vw] top-[47vh] w-[5vw] btn" x-show="$store.default.showDetailControl">ins-->mc</button>
-	<button onclick="InsAdClick()" id="InsAbButton"class="fixed left-[49.2vw] top-[27vh] w-[5vw] btn" x-show="$store.default.showDetailControl">ins-->ab</button>
-	<button onclick="InsPcClick()" id="InsPcButton" class="fixed left-[56vw] top-[38.5vh] w-[5vw] btn"x-show="$store.default.showDetailControl" >ins-->pc</button>
-	<button onclick="PcAdClick()" id="PcAbButton" class="fixed left-[65.5vw] top-[27vh] w-[5vw] btn" x-show="$store.default.showDetailControl">pc-->ab</button>
+	<button onclick="mcEffect(AddAcc)" class="fixed left-[80.5vw] top-[64vh] w-[5vw] btn"x-show="$store.default.bonsaiMode">plus</button>
+	<button onclick="mcEffect(SubAcc)" class="fixed left-[80.5vw] top-[67vh] w-[5vw] btn" x-show="$store.default.bonsaiMode">minus</button>
+	<button onclick="mcEffect(DbIns)" class="fixed left-[36.5vw] top-[62vh] w-[5vw] btn"x-show="$store.default.showDetailControl">db-->ins</button>
+	<button onclick="mcEffect(InsMc)" class="fixed left-[44.3vw] top-[47vh] w-[5vw] btn" x-show="$store.default.showDetailControl">ins-->mc</button>
+	<button onclick="mcEffect(InsAd)" class="fixed left-[49.2vw] top-[27vh] w-[5vw] btn" x-show="$store.default.showDetailControl">ins-->ab</button>
+	<button onclick="mcEffect(InsPc)" class="fixed left-[56vw] top-[38.5vh] w-[5vw] btn"x-show="$store.default.showDetailControl" >ins-->pc</button>
+	<button onclick="mcEffect(PcAd)"  class="fixed left-[65.5vw] top-[27vh] w-[5vw] btn" x-show="$store.default.showDetailControl">pc-->ab</button>
 	<div class="flex flex-col space-y-1 fixed left-[65.5vw] top-[44vh] w-[5vw]">
-		<button onclick="IncPcClick()" id="IncPcButton" class="btn" x-show="$store.default.showDetailControl">pc++</button>
-		<button onclick="IncPc0Click()" id="IncPc0Button" class="btn" x-show="$store.default.showDetailControl">=0:pc++</button>
+		<button onclick="mcEffect(IncPc)" class="btn" x-show="$store.default.showDetailControl">pc++</button>
+		<button onclick="mcEffect(IncPc0)" class="btn" x-show="$store.default.showDetailControl">=0:pc++</button>
 	</div>
 	<div class="flex flex-col space-y-1 fixed left-[61.5vw] top-[80vh] w-[5vw]">
-		<button onclick="NullMcClick()" id="NullMcButton" class="btn" x-show="$store.default.showDetailControl">mc:=0</button>
-		<button onclick="HaltClick()" id="HaltButton" class="btn" x-show="$store.default.showDetailControl">stop</button>
+		<button onclick="mcEffect(NullMc)" class="btn" x-show="$store.default.showDetailControl">mc:=0</button>
+		<button onclick="mcEffect(Halt)" class="btn" x-show="$store.default.showDetailControl">stop</button>
 	</div>
 
 
