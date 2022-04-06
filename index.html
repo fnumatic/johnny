@@ -267,7 +267,7 @@ x-cloak
 	</div>
 	<div class="flex flex-col   fixed left-[44.7vw] top-[36.5vh]  w-[10vw] h-[6vh] p-1 bg-gray-500 border border-red-800">
 
-		<p class="text-right px-1 pb-1 text-gray-400 font-semibold text-xs">Instruct Register</p>
+		<p class="text-right px-1 pb-1 text-gray-400 font-semibold text-xs truncate">Instruct Register</p>
 		<p id="InstructionalRegister" 
 		class=" text-2xl text-center"
 		x-show="$store.default.showDetailControl">
@@ -279,7 +279,7 @@ x-cloak
 	<div class="flex flex-col fixed left-[64.5vw] top-[36.5vh] w-[10vw] h-[6vh] p-1 bg-gray-500 border border-red-800"
 	x-show="$store.default.showDetailControl"
 	>
-		<p class=" text-right px-1 pb-1 text-gray-400 font-semibold text-xs" >Program Counter</p>
+		<p class=" text-right px-1 pb-1 text-gray-400 font-semibold text-xs truncate" >Program Counter</p>
 		<p class=" text-2xl text-gray-100 text-center" x-text="$store.default.r_programCounter()" >000</p>
 	</div>
 	<div 
