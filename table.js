@@ -47,27 +47,9 @@ function renderCommandSelect(mc) {
   Alpine.store("commandSelect").items=opts;
 }
 
-const mc2txt = {
-    0: "---",
-    1: "db ---> ram",
-    2: "ram ---> db ",
-    3: "db ---> ins",
-    4: "ins ---> ab",
-    5: "ins ---> mc",
-    7: "mc:=0",
-    8: "pc ---> ab",
-    9: "pc++",
-    10: "acc=0?->pc++",
-    11: "ins ---> pc",
-    12: "acc:=0",
-    13: "plus",
-    14: "minus",
-    15: "acc ---> db ",
-    16: "acc++",
-    17: "acc--",
-    18: "db ---> acc",
-    19: "stop",
-  };
+
 function microCodeToText(id){
-  return (mc2txt[id])? mc2txt[id] : 'undefined'
+  return id === 0 ? "" 
+  : opTbl[id] ? opTbl[id][3]
+  : ""
 }
