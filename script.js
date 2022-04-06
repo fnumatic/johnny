@@ -34,6 +34,7 @@ const normalMC="8;2;3;5;0;0;0;0;0;0;12;4;2;13;9;7;0;0;0;0;4;2;13;9;7;0;0;0;0;0;4
 	var startScreenFadeOutTime = 1500; // für den Ladebildschirm
 
 	const ramSize = 1000  //this ideally has to be a multiple of 10
+  const mcCacheSize=200
 	const ramLength = Math.log10(ramSize) +1;
   const maxAccu = parseInt(1 + "9".repeat(ramLength));
   const maxAdress = parseInt("9".repeat(ramLength - 1))
@@ -217,8 +218,8 @@ function aufnahme(){
   } else {
     recording = true;
     recordingCounter =
-      Math.floor(validateNumber(parseInt(recordNum), 200, 0) / 10) * 10; // ignorieren der letzen stelle
-    assocInMicrocode(recordingCounter / 10 + 200, recordName);
+      Math.floor(validateNumber(parseInt(recordNum), mcCacheSize, 0) / 10) * 10; // ignorieren der letzen stelle
+    assocInMicrocode(recordingCounter / 10 + mcCacheSize, recordName);
     //todo: default append name on recording
     //Alpine.store('default').microCode[recordingCounter].id = recordingCounter + "   " + Alpine.store('default').microCode[recordingCounter/10+200] + ":" ;//name im Mc Tabelle einfügen
 
@@ -296,7 +297,7 @@ function readMCFile() {
 };
 
 function eventualNum(c, i) {
-  return i < 200 ? parseInt(c) : c;
+  return i < mcCacheSize ? parseInt(c) : c;
 }
 
 //einlesen einer Ramdatei

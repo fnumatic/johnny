@@ -3,16 +3,16 @@ function renderRam(ram, highlight,selected){
 }
 function ramTableRow(value,address,highlight_,selected_){
   console.assert(typeof value === 'number')
-  if (address > 999)   return
+  if (address > ramSize - 1)   return
 
   const {microCode} = Alpine.store('default')
   const hv = highVal(value);
   const lv = lowVal(value);
-  const high =  parseInt(hv) + 200;
+  const high =  parseInt(hv) + mcCacheSize;
   const data = hv + "." + lv
   const highlight= highlight_ == address
   const selected= selected_ == address
-  const [asm,op] = high > 200 && microCode[high] != undefined
+  const [asm,op] = high > mcCacheSize && microCode[high] != undefined
   ? [microCode[high], lv]
   : ["",""]
   return {	id: address,	data,	asm,	op ,highlight,selected }
@@ -20,12 +20,12 @@ function ramTableRow(value,address,highlight_,selected_){
 
 
 function codelbl(agg, i, mc) {
-	return R.assoc((i - 200) * 10, "   " + mc[i] + ":", agg);
+	return R.assoc((i - mcCacheSize) * 10, "   " + mc[i] + ":", agg);
 }
 function hopt(i,mc) {
   return {
-    id: i - 200,
-    val: zeroPad(i - 200, 2) + ": " + mc[i],
+    id: i - mcCacheSize,
+    val: zeroPad(i - mcCacheSize, 2) + ": " + mc[i],
   };
 }
 function tblrow(desc,mcd,highlight) {
@@ -37,8 +37,8 @@ function tblrow(desc,mcd,highlight) {
 }
 
 function renderMC(mc, highlight) {
-  const desc = R.range(200, mc.length).reduce((agg,i) => codelbl(agg,i,mc), {});
-  return R.range(0, 200).map(tblrow(desc,mc,highlight));
+  const desc = R.range(mcCacheSize, mc.length).reduce((agg,i) => codelbl(agg,i,mc), {});
+  return R.range(0, mcCacheSize).map(tblrow(desc,mc,highlight));
 }
 
 function renderCommandSelect(mc) {
