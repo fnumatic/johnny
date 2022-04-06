@@ -1,9 +1,9 @@
-# johnny
-Simulation of a von neumann arcitecture
+# fnumatic/johnny
+This is a completely divergent fork.
+There is no intention to push upstream.
 
-The programm is hosted by inf-schule.de
-https://inf-schule.de/content/7_rechner/3_johnny/johnny2/
-
-With the hosting at inf-schule.de it does take some time for them to apply new versions and bugfixes. As such there is also a Github page at:
-https://laubersheini.github.io/johnny
-which automatically updates as soon as i make a commit to the master branch of this repo so it should always be more up to date.
+A current version of this repo is available as github page.
+https://fnumatic.github.io/johnny/
+## Laubersheini/johnny
+for further information see
+https://github.com/Laubersheini/johnny
