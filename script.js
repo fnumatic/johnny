@@ -418,14 +418,12 @@ function ramFromStorage() {
   const arr= Array(ramSize).fill(0)
   const thread= R.compose(R.map(parseInt), R.take(ramSize))
   const storageRam = JSON.parse(localStorage.getItem('johnny-ram'));
-  console.log(ramFromStorage.name, thread(storageRam.concat(arr)))
 	return storageRam ?  thread( storageRam.concat(arr) ) : null;
 }
 
 function ramToStorage(ram) {
   //compress memory
   const thread = R.compose(R.reverse,R.dropWhile(x=> x === 0),R.reverse)
-  console.log(ramToStorage.name, thread(ram));
 	localStorage.setItem("johnny-ram", JSON.stringify(thread(ram)));
 }
 
