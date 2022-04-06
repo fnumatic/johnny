@@ -71,8 +71,11 @@ function microStep(display) {
 
 function renderSignal(display,k) {
   if (display) {
-    Alpine.store('default').mcOpHighlight=k
-    setTimeout(()=> Alpine.store('default').mcOpHighlight=-1, blockFadeoutTime, k);
+    Alpine.nextTick(() =>{
+      Alpine.store('default').mcOpHighlight[k]=true
+      setTimeout(()=> Alpine.store('default').mcOpHighlight[k]=false, blockFadeoutTime, k);
+    })
+    
   }
 }
 
