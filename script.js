@@ -306,7 +306,7 @@ function readRamFile(what) {
   var reader = new FileReader();
   reader.onload = function (progressEvent) {
     const ram = this.result.split("\n").map(i => parseInt(i));
-    Alpine.store('default').ram= R.take(1000,ram);
+    Alpine.store('default').ram= R.take(ramSize,ram);
   };
   reader.readAsText(file);
 };
@@ -413,8 +413,8 @@ function toggleBonsai() {
 }
 
 function ramFromStorage() {
-  const arr= Array(1000).fill(0)
-  const thread= R.compose(R.map(parseInt), R.take(1000))
+  const arr= Array(ramSize).fill(0)
+  const thread= R.compose(R.map(parseInt), R.take(ramSize))
   const storageRam = JSON.parse(localStorage.getItem('johnny-ram'));
   console.log(ramFromStorage.name, thread(storageRam.concat(arr)))
 	return storageRam ?  thread( storageRam.concat(arr) ) : null;
