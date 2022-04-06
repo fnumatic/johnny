@@ -69,6 +69,7 @@ function initStores() {
     microCode: [],
     mcHighlight: -1,
     r_microCode(){ return renderMC(this.microCode,this.mcHighlight)  },
+    mcOpHighlight: -1,
     addressBus: 0,
     r_addressBus(){ return zeroPad(this.addressBus,ramLength -1)},
     AddressBusInput: "",

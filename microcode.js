@@ -4,24 +4,24 @@ const mccAction={
 }
 
 const opTbl = {
-  1: [DbRam, mccAction.inc, 0,"db ---> ram"],
-  2: [RamDb, mccAction.inc, 1,"ram ---> db"],
-  3: [DbIns, mccAction.inc, 2,"db ---> ins"],
-  4: [InsAd, mccAction.inc, 6,"ins ---> ab"],
-  5: [InsMc, mccAction.assign, 5,"ins ---> mc"],
-  7: [NullMc, mccAction.assign, 14,"mc:=0"],
-  8: [PcAd, mccAction.inc, 8,"pc ---> ab"],
-  9: [IncPc, mccAction.inc, 17,"pc++"],
-  10: [IncPc0, mccAction.inc, 16, "acc=0?->pc++"],
-  11: [InsPc, mccAction.inc, 7,"ins ---> pc"],
-  12: [NullAcc, mccAction.inc, 11,"acc:=0"],
-  13: [AddAcc, mccAction.inc, 3, "plus"],
-  14: [SubAcc, mccAction.inc, 3, "minus"],
-  15: [AccDb, mccAction.inc, 4,"acc ---> db"],
-  16: [IncAcc, mccAction.inc, 12,"acc++"],
-  17: [DecAcc, mccAction.inc, 13,"acc--"],
-  18: [DbAcc, mccAction.inc, 3,"db ---> acc"],
-  19: [Halt, mccAction.inc, 15, "stop"],
+  1: [DbRam, mccAction.inc, "db ---> ram"],
+  2: [RamDb, mccAction.inc, "ram ---> db"],
+  3: [DbIns, mccAction.inc, "db ---> ins"],
+  4: [InsAd, mccAction.inc, "ins ---> ab"],
+  5: [InsMc, mccAction.assign, "ins ---> mc"],
+  7: [NullMc, mccAction.assign, "mc:=0"],
+  8: [PcAd, mccAction.inc, "pc ---> ab"],
+  9: [IncPc, mccAction.inc,"pc++"],
+  10: [IncPc0, mccAction.inc, "acc=0?->pc++"],
+  11: [InsPc, mccAction.inc, "ins ---> pc"],
+  12: [NullAcc, mccAction.inc, "acc:=0"],
+  13: [AddAcc, mccAction.inc, "plus"],
+  14: [SubAcc, mccAction.inc,  "minus"],
+  15: [AccDb, mccAction.inc, "acc ---> db"],
+  16: [IncAcc, mccAction.inc, "acc++"],
+  17: [DecAcc, mccAction.inc, "acc--"],
+  18: [DbAcc, mccAction.inc, "db ---> acc"],
+  19: [Halt, mccAction.inc, "stop"],
 };
 const mcTbl=Object
   .keys(opTbl)
@@ -29,11 +29,10 @@ const mcTbl=Object
 
 function mcEffect(fn, display=true){
   const op=mcTbl[fn.name]
-  const [,,id]= opTbl[op]
 
   const res = fn()
   aufnehmen(op)
-  renderSignal(display, id);
+  renderSignal(display,op);
   return res
 }
 function incEffect (fn,display,mcCounter) {
@@ -70,10 +69,10 @@ function microStep(display) {
 }
 
 
-function renderSignal(display,id) {
+function renderSignal(display,k) {
   if (display) {
-    FadeIn(id);
-    setTimeout(FadeOut, blockFadeoutTime, id);
+    Alpine.store('default').mcOpHighlight=k
+    setTimeout(()=> Alpine.store('default').mcOpHighlight=-1, blockFadeoutTime, k);
   }
 }
 

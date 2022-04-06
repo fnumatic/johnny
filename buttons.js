@@ -1,15 +1,3 @@
-const indicators = document.getElementsByClassName("dataMovement")
-
-const FadeIn = n => fade(n,"block")
-const FadeOut = n => fade(n,"none")
-
-function fade(number,display){
-	if (indicators[number]){
-		indicators[number].style.display=display
-	}
-}
-
-
 function resetComputer(){
 	console.log(resetComputer.name)
 	assocAdressBus(0);
