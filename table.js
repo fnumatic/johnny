@@ -50,6 +50,6 @@ function renderCommandSelect(mc) {
 
 function microCodeToText(id){
   return id === 0 ? "" 
-  : opTbl[id] ? opTbl[id][3]
+  : opTbl[id] ? opTbl[id][2]
   : ""
 }
