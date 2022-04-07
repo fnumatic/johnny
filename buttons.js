@@ -6,7 +6,7 @@ function resetComputer(){
 	assocMcCounter(0);
 	Alpine.store('default').accumulator=0
 	assocProgramCounter(0);
-	halt = false;
+	Alpine.store('default').halt = false;
 	Alpine.store('default').pause = false ;
 
 	clearTimeout(timeoutforexecution); //beenden des Ausführen des programms

@@ -40,7 +40,7 @@ function incEffect (fn,display,mcCounter) {
   return mcCounter + 1;
 }
 function microStep(display) {
-  const {microCode,mcCounter}=Alpine.store('default')
+  const {microCode,mcCounter,turboMode}=Alpine.store('default')
   let mcCounter_ = 0
 
   const mcKey = parseInt(microCode[mcCounter])
@@ -184,5 +184,5 @@ function IncPc0() {
 
 function Halt(){
 	alert("Ende des Programms")
-	halt = true ;
+  Alpine.store('default').halt=true
 }
