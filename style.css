@@ -1227,6 +1227,10 @@ video {
   background-image: url('/images/ram_input.svg');
 }
 
+.bg-\[url\(\'images\/ram_input\.svg\'\)\] {
+  background-image: url('images/ram_input.svg');
+}
+
 .fill-current {
   fill: currentColor;
 }
