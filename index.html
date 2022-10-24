@@ -172,10 +172,10 @@ x-cloak
 	<div  class="flex justify-between z-20 fixed items-center p-4 w-[100vw] bg-gray-500">
 		<div class="flex space-x-8 ">
 			<div class="flex space-x-2 items-center ">
-				<abbr title="New Ram"><img tabindex=0 src="./images/new_macro.svg" onclick="newRam()" class="icon"></img></abbr>
-				<abbr title="Save ram as Johnny file"><img tabindex=0 src="./images/save_ram.svg" onclick="downloadRam()"
+				<abbr title="New Ram"><img tabindex=0 src="./images/macro_new.svg" onclick="newRam()" class="icon"></img></abbr>
+				<abbr title="Save ram as Johnny file"><img tabindex=0 src="./images/ram_save.svg" onclick="downloadRam()"
 						class="icon"></img></abbr>
-				<abbr title="Load ram file "><img tabindex=0 src="./images/open_ram.svg" onclick="uploadRam()"
+				<abbr title="Load ram file "><img tabindex=0 src="./images/ram_open.svg" onclick="uploadRam()"
 						class="icon"></img></abbr>
 			</div>
 	
@@ -206,12 +206,12 @@ x-cloak
 			<div id="mcOptions" class="flex space-x-2 items-center"
 				x-show="$store.default.showDetailControl"
 			>
-				<abbr title="new microcode"><img src="./images/new_micro.svg" onclick="resetMicrocode()" class="icon"></img></abbr>
+				<abbr title="new microcode"><img src="./images/micro_new.svg" onclick="resetMicrocode()" class="icon"></img></abbr>
 				<abbr title="One micro step"><img tabindex=0 src="./images/micro_step.svg" onclick="microStep(true)"
 						class="icon blackborder"></img></abbr>
-				<abbr title="Save microcode as mc file"><img tabindex=0 src="./images/save_micro.svg" onclick="downloadMc()"
+				<abbr title="Save microcode as mc file"><img tabindex=0 src="./images/micro_save.svg" onclick="downloadMc()"
 						class="icon"></img></abbr>
-				<abbr title="load microcode file"><img tabindex=0 src="./images/open_micro.svg" onclick="uploadMc()"
+				<abbr title="load microcode file"><img tabindex=0 src="./images/micro_open.svg" onclick="uploadMc()"
 						class="icon"></img></abbr>
 			</div>
 	
@@ -219,7 +219,7 @@ x-cloak
 				:class="$store.default.recordBlink"
 				x-show="$store.default.showDetailControl"
 			>
-				<abbr title="Record macrocode"><img tabindex=0 src="./images/record_macro.svg" onclick="aufnahme()"
+				<abbr title="Record macrocode"><img tabindex=0 src="./images/macro_record.svg" onclick="aufnahme()"
 						class="icon"></img></abbr>
 				<abbr title="Address in micro program memory of new Macrocode ">
 					<input class="w-[5vmin] text-sm px-1" type="number" istep="10" x-model="$store.default.recordNum"
@@ -406,7 +406,7 @@ x-init="$el.scrollTop=0">
 
 <div 
 x-ref="ramInput"
-class="flex items-center fixed left-[0.5vw] top-[45vh] w-[8vw] h-[18vh] bg-[url('/images/raminput.svg')]"
+class="flex items-center fixed left-[0.5vw] top-[45vh] w-[8vw] h-[18vh] bg-[url('/images/ram_input.svg')]"
 :style="{top: $store.default.ramInputTop}"
 x-init
 >
