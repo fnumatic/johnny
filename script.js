@@ -61,7 +61,7 @@ function initStores() {
     r_accumulator(){ return zeroPad(this.accumulator,ramLength +1)},
     is_accuZero(){return this.accumulator == 0},
     executionSpeed: 1700,
-    showDetailControl: true,
+    showDetailControl: false,
     showModal: false,
     mcCounter: 0,
     r_mcCounter(){return zeroPad(this.mcCounter,ramLength-1)},
