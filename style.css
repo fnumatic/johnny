@@ -813,16 +813,12 @@ video {
   top: 24vh;
 }
 
-.left-\[80\.5vw\] {
-  left: 80.5vw;
+.top-\[65vh\] {
+  top: 65vh;
 }
 
-.top-\[64vh\] {
-  top: 64vh;
-}
-
-.top-\[67vh\] {
-  top: 67vh;
+.top-\[68vh\] {
+  top: 68vh;
 }
 
 .top-\[27vh\] {
@@ -1221,10 +1217,6 @@ video {
 
 .bg-opacity-\[85\%\] {
   --tw-bg-opacity: 85%;
-}
-
-.bg-\[url\(\'\/images\/ram_input\.svg\'\)\] {
-  background-image: url('/images/ram_input.svg');
 }
 
 .bg-\[url\(\'images\/ram_input\.svg\'\)\] {

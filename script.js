@@ -77,7 +77,8 @@ function initStores() {
     halt:false,
     recording : false,
     recordingCounter : 150,
-    turboMode : false
+    turboMode : false,
+    bonsaiMode: false
   });
 }
 
@@ -118,7 +119,7 @@ function newRam(){
 }
 
 function resetMicrocode() {
-  return normalMC.split(";");
+  return (Alpine.store('default').bonsaiMode ? bonsaiMC : normalMC).split(';');
 }
 
 function fadeOutStartScreen(){//für verzögertes ausblenden des Startblidschirms(frühstens nach startScreenFadeOutTime ms  )
@@ -372,9 +373,10 @@ window.addEventListener('scroll', function (e) {
 */
 
 function toggleBonsai() {
-  const [msg,mc,isBonsaiMode] = 	Alpine.store('default').bonsaiMode
-  ? ["changing to normal mode will clear the microcode", normalMC, false]
-  : ["changing to bonsai mode will clear the microcode", bonsaiMC, true]
+  const txt = s => `"changing to ${s} mode will clear the microcode"`
+  const [msg,mc,isBonsaiMode] = 	Alpine.store('default').bonsaiMode 
+  ? [txt('normal'), normalMC, false]
+  : [txt('bonsai'), bonsaiMC, true]
 
   //effect
   if (confirm(msg)) {

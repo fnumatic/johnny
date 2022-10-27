@@ -296,10 +296,10 @@ x-cloak
 	<div class="flex flex-col space-y-1 fixed left-[88vw] top-[24vh] w-[5vw]">
 		<button onclick="mcEffect(IncAcc)" class="btn">acc++</button>
 		<button onclick="mcEffect(DecAcc)" class="btn">acc--</button>
-		<button onclick="mcEffect(NullAcc)" class="btn" x-show="$store.default.bonsaiMode">acc=0</button>
+		<button onclick="mcEffect(NullAcc)" class="btn" x-show="!$store.default.bonsaiMode">acc=0</button>
 	</div>
-	<button onclick="mcEffect(AddAcc)" class="fixed left-[80.5vw] top-[64vh] w-[5vw] btn"x-show="$store.default.bonsaiMode">plus</button>
-	<button onclick="mcEffect(SubAcc)" class="fixed left-[80.5vw] top-[67vh] w-[5vw] btn" x-show="$store.default.bonsaiMode">minus</button>
+	<button onclick="mcEffect(AddAcc)" class="fixed left-[78vw] top-[65vh] w-[5vw] btn"x-show="!$store.default.bonsaiMode">plus</button>
+	<button onclick="mcEffect(SubAcc)" class="fixed left-[78vw] top-[68vh] w-[5vw] btn" x-show="!$store.default.bonsaiMode">minus</button>
 	<button onclick="mcEffect(DbIns)" class="fixed left-[36.5vw] top-[62vh] w-[5vw] btn"x-show="$store.default.showDetailControl">db-->ins</button>
 	<button onclick="mcEffect(InsMc)" class="fixed left-[44.3vw] top-[47vh] w-[5vw] btn" x-show="$store.default.showDetailControl">ins-->mc</button>
 	<button onclick="mcEffect(InsAd)" class="fixed left-[49.2vw] top-[27vh] w-[5vw] btn" x-show="$store.default.showDetailControl">ins-->ab</button>
@@ -454,7 +454,7 @@ x-init
 		id="bonsaiModeButton" 
 		class="px-3 py-1 rounded border border-gray-400" 
 		x-on:click="toggleBonsai()"
-		x-text="($store.default.bonsaiMode ? 'bonsai' : 'normal') + ' mode'"></button>
+		x-text="($store.default.bonsaiMode ? 'normal' : 'bonsai') + ' mode'"></button>
 		<p>Johnny can also be installed as an app. Click<a
 				href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Developer_guide/Installing#the_install_user_experience"
 				target="_blank"> here</a> to learn how to install Johnny on your device</p>
