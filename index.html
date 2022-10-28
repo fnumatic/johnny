@@ -34,7 +34,10 @@ mit dank an Dr. Peter Dauscher
 	<link rel="apple-touch-icon" sizes="256x256" href="./icons/firefox/firefox-general-256-256.png">
 	<title>Johnny 2.0</title>	
 	<script src="//unpkg.com/alpinejs" defer></script>
+	<script defer src="https://unpkg.com/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
 	<script src="//cdn.jsdelivr.net/npm/ramda@0.27.1/dist/ramda.min.js"></script>
+	<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.css'>
+	<script  src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js'></script>
 	<script>
 		var LoadStart = new Date().getTime();//this is so that the splash screen is always on for the same time
 
@@ -177,6 +180,13 @@ x-cloak
 						class="icon"></img></abbr>
 				<abbr title="Load ram file "><img tabindex=0 src="./images/ram_open.svg" onclick="uploadRam()"
 						class="icon"></img></abbr>
+				<abbr title="edit ram ">
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
+							class="w-10 h-10 icon bg-slate-500 text-gray-400" tabindex=0  onclick="editRam()"
+							>
+								<path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+							  </svg>
+						</abbr>		
 			</div>
 	
 			<div class="flex space-x-2 items-center">
@@ -468,6 +478,43 @@ x-init
 
 
 
+<div id="defaultModal" 
+@keyup.escape="$store.default.showEditor=false"
+tabindex="-1" 
+aria-hidden="$store.default.showEditor" 
+x-show="$store.default.showEditor"
+x-trap="$store.default.showEditor"
+class=" overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 w-full md:inset-0 h-modal h-full">
+	<div class="relative p-4 pl-6 w-full max-w-2xl h-full ">
+		<!-- Modal content -->
+		<div x-data="inputs" class="relative bg-white rounded-lg shadow dark:bg-gray-700 ">
+			<!-- Modal header -->
+			<div class="flex justify-between  items-center p-2 rounded-t border-b dark:border-gray-600">
+				<h3 class=" font-semibold text-gray-900 dark:text-white">
+					Edit
+				</h3>
+				<button type="button" 
+				x-on:click="$store.default.showEditor=false"
+				class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="defaultModal">
+					<svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+					<span class="sr-only">Close modal</span>
+				</button>
+			</div>
+			<!-- Modal body -->
+			<div class="h-96">
+				<textarea x-trap="$store.default.showEditor" x-ref="inputt"></textarea>
+			</div>
+				
+			<!-- Modal footer -->
+			<div class="flex items-center p-2 space-x-2 rounded-b border-t border-gray-200 dark:border-gray-600">
+				<button data-modal-toggle="defaultModal" type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">ok</button>
+				<button data-modal-toggle="defaultModal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancel</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+
 <!--This is for showing a hint for IOS users that they can install Johnny as a PWA-->
 <div
 	class = "hidden pwaPromptOverlay visibilityClass iOSClass iOSPWA-overlay "
@@ -573,6 +620,45 @@ x-init
 </script>
 </div>
 
+
+
+<script id="rendered-js" >
+
+	document.addEventListener('alpine:init', () => {
+		Alpine.data('inputs', () => ({
+			init() { 
+				let editor = CodeMirror.fromTextArea(this.$refs.inputt , {
+					styleActiveLine: true,
+					lineNumbers: true,
+					firstLineNumber: 0,
+					autofocus: true
+
+				});
+				editor.setSize("100%", "100%");
+
+				Alpine.effect(() => {
+					if (Alpine.store('default').showEditor){
+    					editor.setValue (Alpine.store('default').editorContent)
+						const timer = setInterval(() => {
+							editor.focus()
+
+							if(editor.hasFocus()) {
+								editor.refresh()
+								editor.setCursor({line: 0,ch: 1})
+								console.log('interval out');
+								clearInterval(timer);
+							}
+						}, 100);
+					}
+				})
+			},
+        }))
+	
+})
+	
+
+	//html_value = editor.getValue();
+</script>
 
 </body>
 

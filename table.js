@@ -53,3 +53,14 @@ function microCodeToText(id){
   : opTbl[id] ? opTbl[id][2]
   : ""
 }
+
+function ram2asm(value, microCode, cacheSize = mcCacheSize, rlength=ramLength){
+  const clean=true
+  const hv = highVal(value, rlength);
+  const lv = lowVal(value, rlength);
+  const lv_ = clean && parseInt(lv)==0 ? "": lv
+  const high =  parseInt(hv) + cacheSize;
+  return high > mcCacheSize && microCode[high] != undefined
+                ? [microCode[high], lv]
+                : ["",lv_]
+}

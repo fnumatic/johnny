@@ -78,7 +78,9 @@ function initStores() {
     recording : false,
     recordingCounter : 150,
     turboMode : false,
-    bonsaiMode: false
+    bonsaiMode: false,
+    showEditor: false,
+    editorContent:""
   });
 }
 
@@ -407,4 +409,12 @@ function mcFromStorage() {
 
 function rcToStorage(microcode) {
   localStorage.setItem("johnny-microcode", JSON.stringify(microcode));
+}
+
+function editRam(){
+  const microCode = Alpine.store('default').microCode
+
+  const toAsm= e => ram2asm(e,microCode).join(' ').trim()
+  Alpine.store('default').editorContent= Alpine.store('default').ram.map(toAsm).join('\n');
+  Alpine.store('default').showEditor=true;
 }

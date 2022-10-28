@@ -17,12 +17,12 @@ function assocMicrocode(mc){
 }
 
 
-function lowVal(Value) {
-	return zeroPad(Value, ramLength + 1).substr(2, ramLength + 1);
+function lowVal(Value,rlength=ramLength) {
+	return zeroPad(Value, rlength + 1).substr(2, rlength + 1);
 }
 
-function highVal(Value) {
-	return zeroPad(Value, ramLength + 1).substr(0, 2);
+function highVal(Value, rlength=ramLength) {
+	return zeroPad(Value, rlength + 1).substr(0, 2);
 }
 
 function assocAdressBus(number){
