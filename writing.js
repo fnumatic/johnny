@@ -60,6 +60,6 @@ function updateAccu(fn){
 }
 
 function updateRamSelected(fn){
-  const {ramSelectet}=Alpine.store('default')
-  Alpine.store('default').ramSelected = fn(ramSelectet);
+  const {ramSelected}=Alpine.store('default')
+  Alpine.store('default').ramSelected = fn(ramSelected);
 }
