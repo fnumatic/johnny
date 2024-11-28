@@ -5,7 +5,7 @@ function ramTableRow(value,address,highlight_,selected_){
   console.assert(typeof value === 'number')
   if (address > ramSize - 1)   return
 
-  const {microCode} = Alpine.store('default')
+  const {microCode} = store()
   const hv = highVal(value);
   const lv = lowVal(value);
   const high =  parseInt(hv) + mcCacheSize;
@@ -44,7 +44,7 @@ function renderMC(mc, highlight) {
 function renderCommandSelect(mc) {
   if (!mc) return
   const opts = R.range(201, mc.length).map(i => hopt(i,mc));
-  Alpine.store("commandSelect").items=opts;
+  store("commandSelect").items=opts;
 }
 
 

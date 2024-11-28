@@ -40,7 +40,7 @@ function incEffect (fn,display,mcCounter) {
   return mcCounter + 1;
 }
 function microStep(display) {
-  const {microCode,mcCounter,turboMode}=Alpine.store('default')
+  const {microCode,mcCounter,turboMode}=store()
   let mcCounter_ = 0
 
   const mcKey = parseInt(microCode[mcCounter])
@@ -58,13 +58,14 @@ function microStep(display) {
           " in Adresse " +
           mcCounter +
           " programm wird beendent",
-          Alpine.store('default')
+          store()
       );
       Halt();
   } 
-  assocMcCounter(mcCounter_)
+  store().mcCounter= mcCounter_
+  
   if (!turboMode) {
-    Alpine.store('default').mcHighlight=mcCounter_
+    store().mcHighlight=mcCounter_
   }
 }
 
@@ -72,117 +73,118 @@ function microStep(display) {
 function renderSignal(display,k) {
   if (display) {
     Alpine.nextTick(() =>{
-      Alpine.store('default').mcOpHighlight[k]=true
-      setTimeout(()=> Alpine.store('default').mcOpHighlight[k]=false, blockFadeoutTime, k);
+      store().mcOpHighlight[k]=true
+      setTimeout(()=> store().mcOpHighlight[k]=false, blockFadeoutTime, k);
     })
     
   }
 }
 
 function RamDb(){
-  const store = Alpine.store('default');
-  const {addressBus,ram}=store
+  const {addressBus,ram,ramHighlight,mcCounter}=store()
   console.assert(typeof addressBus === "number")
-  assocDatabus(ram[addressBus])
-  Alpine.store('default').ramHighlight = highlightRamAccess(store)
+  store().dataBus= ram[addressBus]
+  store().ramHighlight = highlightRamAccess({addressBus,ramHighlight,mcCounter})
 }
 
 
 function DbRam(){
-  const store = Alpine.store('default');
-  const {addressBus,dataBus}=store
+  const {addressBus,dataBus,ramHighlight,mcCounter}=store()
   console.assert(typeof addressBus === "number")
 
 	assocInRam(addressBus, dataBus)
-	Alpine.store('default').ramHighlight = highlightRamAccess(store)
+	store().ramHighlight = highlightRamAccess({addressBus,ramHighlight,mcCounter})
 }
 
 function DbAcc() {
-  const {dataBus} = Alpine.store('default')
-  updateAccu(_ => dataBus)
+  const {dataBus} = store()
+  store().accumulator= dataBus
 }
 
 function AccDb(){
-  const {accumulator} = Alpine.store('default')
-  assocDatabus(accumulator)
+  const {accumulator} = store()
+  store().dataBus= accumulator
 }
 
 function NullAcc(){
-  updateAccu( _ => 0)
+  store().accumulator=0
 }
 
 function IncAcc() {
   const notexceeds= accu => accu < maxAccu
-  updateAccu(accu => notexceeds(accu) ? accu + 1 : accu );
+  modify(accumulatorK, v => notexceeds(v) ? v + 1 : v)
 }
 
 function DecAcc() {
-  updateAccu(accu => accu > 0 ? accu - 1 : accu)
+  modify(accumulatorK, v => v > 0 ? v - 1 : v)
 }
 
 function AddAcc() {
-  const {dataBus} = Alpine.store('default')
+  const {dataBus} = store()
   const notexceeds= accu => accu + dataBus < (maxAccu + 1)
-  updateAccu(accu => notexceeds(accu) ? accu + dataBus : maxAccu)
+  modify(accumulatorK, v => notexceeds(v) ? v + dataBus : maxAccu)
 }
 
 function SubAcc() {
-  const {dataBus} = Alpine.store('default')
-  updateAccu(accu => accu - dataBus >= 0 ? accu - dataBus : 0 )
+  const {dataBus} = store()
+  modify(accumulatorK, v => v - dataBus >= 0 ? v - dataBus : 0)
 }
 
 function DbIns(){
-  const {dataBus} = Alpine.store('default')
+  const {dataBus} = store()
   console.log(DbIns.name, dataBus);
-	assocInstructionRegister(dataBus);
+  store().instructionRegister= dataBus
 }
 
 function InsMc(){
-  const {instructionRegister} = Alpine.store('default')
+  const {instructionRegister} = store()
   console.log(InsMc.name, instructionRegister)
   const opCode = Math.floor(instructionRegister / ramSize) * 10;
-	assocMcCounter( opCode	) //get only the opcode
+  store().mcCounter= opCode
   return opCode
 }
 
 function InsAd(){
-  const {instructionRegister} =Alpine.store('default')
+  const {instructionRegister} =store()
   const address = lowVal(instructionRegister)
-  assocAdressBus(parseInt(address));
+  store().addressBus= parseInt(address)
 }
 
 
 function InsPc(){
-  const {instructionRegister} =Alpine.store('default')
+  const {instructionRegister} =store()
   const s = lowVal(instructionRegister)
-  assocProgramCounter(parseInt(s))
+  store().programmCounter=parseInt(s)
+	assocIF(ramSelectedK, parseInt(s), !store().turboMode)
 }
 
 function PcAd(){
-  const {programmCounter} = Alpine.store('default')
-	assocAdressBus(programmCounter);
+  const {programmCounter} = store()
+  store().addressBus= programmCounter
 }
 
 function NullMc(){
-	assocMcCounter(0)
+  store().mcCounter= 0
   return 0
 }
 
 function IncPc() {
-  const {programmCounter} = Alpine.store('default')
+  const {programmCounter,turboMode} = store()
   if (programmCounter < maxAdress) {
-    assocProgramCounter(programmCounter + 1);
+    store().programmCounter=programmCounter + 1
+	  assocIF(ramSelectedK, programmCounter + 1, !turboMode)
   }
 }
 
 function IncPc0() {
-  const {programmCounter,accumulator} = Alpine.store('default')
+  const {programmCounter,accumulator,turboMode} = store()
   if ( programmCounter < maxAdress && accumulator == 0) {
-    assocProgramCounter(programmCounter + 1);
+    store().programmCounter=programmCounter + 1
+	  assocIF(ramSelectedK, programmCounter + 1, !turboMode)
   }
 }
 
 function Halt(){
 	alert("Ende des Programms")
-  Alpine.store('default').halt=true
+  store().halt=true
 }

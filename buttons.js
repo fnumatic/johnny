@@ -1,20 +1,21 @@
 function resetComputer(){
 	console.log(resetComputer.name)
-	assocAdressBus(0);
-	assocDatabus(0);
-	assocInstructionRegister(0);
-	assocMcCounter(0);
-	Alpine.store('default').accumulator=0
-	assocProgramCounter(0);
-	Alpine.store('default').halt = false;
-	Alpine.store('default').pause = false ;
+	store().addressBus=0;
+	store().dataBus=0;
+	store().instructionRegister=0;
+	store().mcCounter=0;
+	store().accumulator=0
+	store().programmCounter=0;
+	assocIF(ramSelectedK, 0, !store().turboMode)
+	store().halt = false;
+	store().pause = false ;
 
 	clearTimeout(timeoutforexecution); //beenden des Ausführen des programms
 }
 
 
 function downloadMc(){
-	download(Alpine.store('default').microCode.join("\r\n"), "Micro_code.mc","txt")
+	download(store().microCode.join("\r\n"), "Micro_code.mc","txt")
 
 }
 function downloadRam(){
@@ -23,31 +24,31 @@ function downloadRam(){
 }
 
 function CommandSelectChange(){
-	const {ramInput,commandSelection}=Alpine.store('default')
+	const {ramInput,commandSelection}=store()
 	const input = ramInput.split(numberDevisionChar)
 	//todo: substr -> lowVal
-	Alpine.store('default').ramInput = zeroPad(commandSelection,2 )+ numberDevisionChar + zeroPad(input.pop(),ramLength +1).substr(2,ramLength);
+	store().ramInput = zeroPad(commandSelection,2 )+ numberDevisionChar + zeroPad(input.pop(),ramLength +1).substr(2,ramLength);
 
 }
 function ManuellRam() {
   //ignorieren des Punktes der hi und low trennt
-  const {ramInput,ramSelected}=Alpine.store('default')
+  const {ramInput,ramSelected}=store()
   const input = ramInput.split(numberDevisionChar).join("");
   const value = validateNumber(parseInt(input), maxAccu, 0);
   assocInRam( ramSelected, value);
-  updateRamSelected(rsel => rsel < maxAdress ? rsel + 1 : rsel )
+  modify(ramSelectedK, v => v < maxAdress ? v + 1 : v)
 }
 
 
 function ManuellDb() {
-  const {DataBusInput} = Alpine.store('default')
+  const {DataBusInput} = store()
   const value = validateNumber(parseInt(DataBusInput), maxAccu, 0);
-  assocDatabus(value);
+  store().dataBus= value
 }
 function ManuellAB() {
-	const {AddressBusInput} = Alpine.store('default')
+  const {AddressBusInput} = store()
   const value = validateNumber(parseInt(AddressBusInput), maxAdress, 0);
-  assocAdressBus(value);
+  store().addressBus= value
 }
 
 
