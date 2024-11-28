@@ -86,20 +86,20 @@ function initStores() {
 
 function initEffects(){
 	Alpine.effect(() => {
-		console.log(Alpine.store('default').showModal)
+		console.log(store().showModal)
 	})
 }
 
 function initialize() {
   console.log(initialize.name);
   //toggleFullScreen()
-  Alpine.store('default').ram= ramFromStorage() || R.range(0, ramSize).map((_) => 0);
-  Alpine.store('default').microCode=  mcFromStorage() || resetMicrocode();
-  renderCommandSelect(Alpine.store('default').microCode)
+  store().ram= ramFromStorage() || R.range(0, ramSize).map((_) => 0);
+  store().microCode=  mcFromStorage() || resetMicrocode();
+  renderCommandSelect(store().microCode)
 
   //1st row ramtbl green
-  Alpine.store('default').ramHighlight = Alpine.store('default').addressBus;
-  Alpine.store('default').loadMsg = "...";
+  store().ramHighlight = store().addressBus;
+  store().loadMsg = "...";
   var loadEnd = new Date().getTime();
 
   if (window.matchMedia("(display-mode: standalone)").matches) {
@@ -113,7 +113,7 @@ function initialize() {
 }
 
 function resetRam(){
-  Alpine.store('default').ram = R.range(0, ramSize).map(_ => 0);
+  store().ram = R.range(0, ramSize).map(_ => 0);
 }
 function newRam(){
   initialize();
@@ -121,18 +121,18 @@ function newRam(){
 }
 
 function resetMicrocode() {
-  return (Alpine.store('default').bonsaiMode ? bonsaiMC : normalMC).split(';');
+  return (store().bonsaiMode ? bonsaiMC : normalMC).split(';');
 }
 
 function fadeOutStartScreen(){//für verzögertes ausblenden des Startblidschirms(frühstens nach startScreenFadeOutTime ms  )
 	console.log(fadeOutStartScreen.name)
-	Alpine.store('default').showStartScreen=false
+	store().showStartScreen=false
 
 	//dinge die nach dem Anzeigen gemacht werden müssen
 	resetComputer()
   Alpine.nextTick(() =>{
-    Alpine.store('default').ramSelected = -1
-    Alpine.store('default').ramSelected = 0
+    store().ramSelected = -1
+    store().ramSelected = 0
   } )
 }
 
@@ -169,7 +169,7 @@ function validateNumber(X,maxValue,minValue){
 
 function updateSpeed(speed){
   console.log(updateSpeed.name)
-	Alpine.store('default').turboMode = 3000 - speed == 0;
+	store().turboMode = 3000 - speed == 0;
 }
 
 function zeroPad(num, places) {
@@ -185,59 +185,58 @@ function getObjectHeight(object){//nimmt ein objekt und gibt die Höhe zurück
 //aufnahme
 function aufnahmeBlinken(){
   const [color,bz] = blinkzyklus== 0? ["bg-red-400", blinkzyklus + 1]: ["bg-green-400", 0]
-	Alpine.store('default').recordBlink=color
+	store().recordBlink=color
   blinkzyklus=bz
 	timeoutforblinking =setTimeout(aufnahmeBlinken,blinkgeschwindigkeit);
 }
 
 function aufnahme(){
-  const {recordNum,recordName,recording}=Alpine.store('default')
+  const {recordNum,recordName,recording}=store()
 	if (recording) {
     clearTimeout(timeoutforblinking);
-    Alpine.store("default").recordBlink = "";
-    Alpine.store("default").recording = false;
+    store().recordBlink= ""
+    store().recording= false
   } else {
-    Alpine.store("default").recording = true
+    store().recording= true
     const rc = Math.floor(validateNumber(parseInt(recordNum), mcCacheSize, 0) / 10) * 10; // ignorieren der letzen stelle
-    assocInMicrocode(rc / 10 + mcCacheSize, recordName);
+    store().microCode[rc / 10 + mcCacheSize]= recordName
     //todo: default append name on recording
 
     for (i = rc; i < rc + 10; i++) {
-      assocInMicrocode(i, 0);
+      store().microCode[i]= 0
     }
 
 
     //als option bei der Eingabe einfügen
-    Alpine.store("commandSelect").items.push({
+      store("commandSelect").items.push({
       id: rc / 10,
       val: zeroPad(rc / 10) + ": " + recordName,
     });
 
-    Alpine.store('default').recordingCounter = rc ;
+    store().recordingCounter = rc ;
     aufnahmeBlinken();
   }
 }
 
 function aufnehmen(befehl) {
-  const {recording,recordingCounter,microCode} = Alpine.store('default')
+  const {recording,recordingCounter,microCode} = store()
   if (recording) {
-    assocInMicrocode(recordingCounter,befehl)
+    store().microCode[recordingCounter]= befehl
  
     rcToStorage(microCode);
-
-    Alpine.store('default').recordingCounter = recordingCounter + 1;
+    store().recordingCounter = recordingCounter + 1;
   } //if
 }
 const maxRecursion = 15
 
 
 function executeProgram(currentRecursions) {
-  const oldPCounter=Alpine.store('default').programmCounter
+  const oldPCounter=store().programmCounter
   console.log(executeProgram.name, currentRecursions,maxRecursion);
   SingleMacroStep();
-  const {programmCounter,executionSpeed,halt,turboMode}=Alpine.store('default')
+  const {programmCounter,executionSpeed,halt,turboMode}=store()
 
-  Alpine.store('default').pause=false
+  store().pause=false
 
   if (!halt && oldPCounter != programmCounter) {
     // beenden beim Halt und bei endlosschleifen durch fehlende oder einen jmp befehl auf die selbe adresse
@@ -252,7 +251,7 @@ function executeProgram(currentRecursions) {
 
 function SingleMacroStep(){
 	microStep(false);
-	while(Alpine.store('default').mcCounter !=0){
+	while(store().mcCounter !=0){
 		microStep(false);
 	}
 
@@ -265,7 +264,7 @@ function readMCFile() {
   var reader = new FileReader();
   reader.onload = function (progressEvent) {
     const mc = this.result.split("\n").map(eventualNum)
-  assocMicrocode(mc)  
+    store().microCode= mc
   renderCommandSelect(mc)
 
   };
@@ -283,7 +282,7 @@ function readRamFile(what) {
   var reader = new FileReader();
   reader.onload = function (progressEvent) {
     const ram = this.result.split("\n").map(i => parseInt(i));
-    Alpine.store('default').ram= R.take(ramSize,ram);
+    store().ram= R.take(ramSize,ram);
   };
   reader.readAsText(file);
 };
@@ -312,21 +311,15 @@ function download(data, filename, type) {
 }
 
 function pauseProgram() {
-  const {executionSpeed,pause}=Alpine.store('default')
+  const {executionSpeed,pause}=store()
   if (!pause) {
     clearTimeout(timeoutforexecution);
-    Alpine.store('default').pause = true;
   } else {
     timeoutforexecution = setTimeout(executeProgram, executionSpeed,0);
-    Alpine.store('default').pause = false;
   }
+  store().pause=!pause
 }
 
-function EditRam(CellNumber) {
-  if (!Alpine.store('default').turboMode) {
-    updateRamSelected( _ => CellNumber)
-  }
-}
 
 function positionRamInput(idx, selRow, ramdiv, raminp, innerrd) {
   const raminpHeight= getObjectHeight(raminp)
@@ -341,7 +334,7 @@ function positionRamInput(idx, selRow, ramdiv, raminp, innerrd) {
 
   console.log(positionRamInput.name,{selRowTop,ramDivBottom,irdtop, tableHeight, top})
   //effect
-  Alpine.store('default').ramInputTop = top;
+  store().ramInputTop = top;
 
   innerrd.scrollTop = irdtop;
 }
@@ -376,16 +369,17 @@ window.addEventListener('scroll', function (e) {
 
 function toggleBonsai() {
   const txt = s => `"changing to ${s} mode will clear the microcode"`
-  const [msg,mc,isBonsaiMode] = 	Alpine.store('default').bonsaiMode 
+  const [msg,mc,isBonsaiMode] = 	store().bonsaiMode 
   ? [txt('normal'), normalMC, false]
   : [txt('bonsai'), bonsaiMC, true]
 
   //effect
   if (confirm(msg)) {
-    assocMicrocode(mc.split(";"))
+    const microCode= mc.split(";")
+    store().microCode= microCode
 
-    Alpine.store('default').bonsaiMode = isBonsaiMode;
-    renderCommandSelect(Alpine.store('default').microCode)
+    store().bonsaiMode = isBonsaiMode;
+    renderCommandSelect(microCode)
   }
   
 }
@@ -412,9 +406,9 @@ function rcToStorage(microcode) {
 }
 
 function editRam(){
-  const microCode = Alpine.store('default').microCode
+  const microCode = store().microCode
 
   const toAsm= e => ram2asm(e,microCode).join(' ').trim()
-  Alpine.store('default').editorContent= Alpine.store('default').ram.map(toAsm).join('\n');
-  Alpine.store('default').showEditor=true;
+  store().editorContent= store().ram.map(toAsm).join('\n');
+  store().showEditor=true;
 }

@@ -364,7 +364,7 @@ mit dank an Dr. Peter Dauscher
 					<tr class="border border-gray-200   " 
 					:id="r.id" 
 					:class="{'bg-yellow-200' : r.selected , 'bg-green-400': r.highlight  }" 
-					x-on:click="EditRam(r.id)"
+					x-on:click="assocRamSelectedIF(r.id)"
 					x-init="$watch('r.selected', value => {
 						if (value) positionRamInput(r.id,$el,$refs.ramdiv,$refs.ramInput,$refs.innerramdiv)});
 						"
