@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { DEFAULT_MODES, MicrocodeMode, executeInstruction, executeMicroStep, getCurrentMicrocode, flattenMicrocode, str2ram, loadProgram, Microcode, CLEAN_CPU_STATE, CPUState, getMicrocodeDescription, parseMicrocode, ProgramMetadata } from '../lib/engine'
+import { readRamFile } from '../lib/programLoader'
 
 interface ExecutionTraceEntry {
   timestamp: number;
@@ -28,6 +29,8 @@ interface State {
   showControlUnit: boolean;
   isControlUnit: boolean;
   showStartScreen: boolean;
+  showProgramEditor: boolean;
+  programEditorText: string;
   controlUnitState: 'FETCH' | 'DECODE' | 'EXECUTE' | 'STORE';
   controlSignals: string[];
   instructionRegister: {
@@ -93,6 +96,10 @@ interface Actions {
   resetProgramCounter: () => void;
   loadTestProgram: () => void;
   loadProgramFromString: (programString: string) => void;
+  loadProgramFromFile: (file: File) => Promise<void>;
+  openProgramEditor: () => void;
+  hideProgramEditor: () => void;
+  setProgramEditorText: (text: string) => void;
   runUntilHalt: () => void;
   stopAutoRun: () => void;
   resetMicrocode: () => void;
@@ -174,6 +181,8 @@ export const useStore = create<State & Actions>((set, get) => ({
   showControlUnit: false,
   isControlUnit: true,
   showStartScreen: true,
+  showProgramEditor: false,
+  programEditorText: '',
   controlUnitState: 'FETCH',
   controlSignals: [],
   instructionRegister: {
@@ -286,6 +295,9 @@ export const useStore = create<State & Actions>((set, get) => ({
     }
   })),
   setShowStartScreen: (show) => set({ showStartScreen: show }),
+   openProgramEditor: () => set({ showProgramEditor: true }),
+  hideProgramEditor: () => set({ showProgramEditor: false, programEditorText: '' }),
+  setProgramEditorText: (text) => set({ programEditorText: text }),
   resetProgramCounter: () => set((state) => ({
     cpuState: {
       ...CLEAN_CPU_STATE,
@@ -366,6 +378,30 @@ export const useStore = create<State & Actions>((set, get) => ({
       isRunning: false,
       currentProgramMetadata: metadata,
     }));
+  },
+  loadProgramFromFile: async (file) => {
+    try {
+      const parsedProgram = await readRamFile(file);
+      
+      set((state) => ({
+        cpuState: {
+          ...CLEAN_CPU_STATE,
+          ram: parsedProgram.ram,
+          microCode: state.cpuState.microCode, // Preserve microcode
+        },
+        currentMode: parsedProgram.metadata.computerType,
+        isRunning: false,
+        currentProgramMetadata: {
+          type: parsedProgram.metadata.computerType,
+          description: parsedProgram.metadata.comment,
+          version: parsedProgram.metadata.version,
+          raw: `V${parsedProgram.metadata.version}:${parsedProgram.metadata.date}:${parsedProgram.metadata.computerType}`
+        },
+      }));
+    } catch (error) {
+      console.error('Error loading program from file:', error);
+      throw error;
+    }
   },
   runUntilHalt: () => {
     const state = get();

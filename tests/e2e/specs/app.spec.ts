@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { AppPage } from '../page-objects/app.po';
-import { TEST_DATA } from '../fixtures/test-data';
 
 test.describe('Application Initialization', () => {
   let appPage: AppPage;
@@ -10,17 +9,17 @@ test.describe('Application Initialization', () => {
     await appPage.navigate();
   });
 
-  test('should display splash screen on load', async ({ page }) => {
+  test('should display splash screen on load', async () => {
     await expect(appPage.splashScreen).toBeVisible();
   });
 
-  test('should hide splash screen and show main interface', async ({ page }) => {
+  test('should hide splash screen and show main interface', async () => {
     await appPage.waitForAppLoad();
     await expect(appPage.mainInterface).toBeVisible();
     await expect(appPage.splashScreen).toBeHidden();
   });
 
-  test('should display all CPU components after loading', async ({ page }) => {
+  test('should display all CPU components after loading', async () => {
     await appPage.waitForAppLoad();
     
     await expect(appPage.memorySection).toBeVisible();
@@ -50,7 +49,7 @@ test.describe('Application Initialization', () => {
     expect(cellValue).not.toBe('');
   });
 
-  test('should toggle dev mode with keyboard shortcut', async ({ page }) => {
+  test('should toggle dev mode with keyboard shortcut', async () => {
     await appPage.waitForAppLoad();
     
     const initiallyHidden = await appPage.isDevModeVisible();

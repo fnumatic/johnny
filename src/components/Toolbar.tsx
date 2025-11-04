@@ -7,17 +7,17 @@ import {
   FolderOpen, 
   Save, 
   Play, 
-  Pause, 
   StepForward, 
   StopCircle, 
   ChevronDown, 
   ChevronUp, 
   Settings, 
   RotateCcw,
+  FileText,
   Upload
 } from 'lucide-react';
-import { useState } from 'react';
 import { DevToolbar } from './DevMode/DevToolbar';
+import { useProgramHandlers } from '../hooks/useProgramHandlers';
 
 export function Toolbar() {
   // Selective store subscriptions - only subscribe to what we actually need
@@ -32,23 +32,15 @@ export function Toolbar() {
   const stepMicrocode = useStore(state => state.stepMicrocode);
   const resetProgramCounter = useStore(state => state.resetProgramCounter);
 
-  const loadProgramFromString = useStore(state => state.loadProgramFromString);
+
+  const { handlePasteProgram, handleLoadFile } = useProgramHandlers();
   const runUntilHalt = useStore(state => state.runUntilHalt);
   const stopAutoRun = useStore(state => state.stopAutoRun);
 
-  const [showProgramInput, setShowProgramInput] = useState(false);
-  const [programText, setProgramText] = useState('');
+
 
   const handleSpeedChange = (value: number[]) => {
     setExecutionSpeed(value[0]);
-  };
-
-  const handleLoadProgram = () => {
-    if (programText.trim()) {
-      loadProgramFromString(programText);
-      setShowProgramInput(false);
-      setProgramText('');
-    }
   };
 
   return (
@@ -63,16 +55,30 @@ export function Toolbar() {
         <Button variant="ghost" size="icon" title="Save File">
           <Save className="size-6" />
         </Button>
-
+        
         <Button 
           variant="ghost" 
           size="icon" 
-          title="Load Custom Program" 
-          onClick={() => setShowProgramInput(!showProgramInput)}
-          data-testid="load-program-button"
+          title="Paste Program"
+          onClick={handlePasteProgram}
+          data-testid="paste-program-button"
+        >
+          <FileText className="size-6" />
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          title="Load File"
+          onClick={handleLoadFile}
         >
           <Upload className="size-6" />
         </Button>
+        
+
+        
+
+
+
       </section>
 
       <Separator orientation="vertical" className="h-6 bg-white/20" />
@@ -163,40 +169,6 @@ export function Toolbar() {
           <Settings className="size-6" />
         </Button>
       </section>
-
-      {/* Program Input Modal */}
-      {showProgramInput && (
-        <section aria-label="Program Input Modal" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-slate-800 p-6 rounded-lg w-96 max-h-96">
-            <h3 className="text-lg font-semibold mb-4">Load Custom Program</h3>
-            <p className="text-sm text-gray-300 mb-4">
-              Enter program in multiline format. Each line should be a number (e.g., 1005 for opcode 1, data 5).
-            </p>
-            <textarea
-              value={programText}
-              onChange={(e) => setProgramText(e.target.value)}
-              placeholder={`Example:
-1005
-2006
-3007
-10000
-23
-3
-10`}
-              className="w-full h-48 p-3 bg-slate-700 text-white border border-slate-600 rounded-md resize-none"
-              data-testid="program-input"
-            />
-            <div className="flex gap-2 mt-4">
-              <Button onClick={handleLoadProgram} disabled={!programText.trim()} data-testid="save-program-button">
-                Load Program
-              </Button>
-              <Button variant="outline" onClick={() => setShowProgramInput(false)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </section>
-      )}
     </nav>
   );
 }; 

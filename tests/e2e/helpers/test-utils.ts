@@ -6,9 +6,9 @@ export class TestUtils {
   }
 
   static async loadProgram(page: Page, program: string) {
-    await page.click('[data-testid="load-program-button"]');
+    await page.click('[data-testid="paste-program-button"]');
     await page.fill('[data-testid="program-input"]', program);
-    await page.click('[data-testid="save-program-button"]');
+    await page.click('[data-testid="load-pasted-program-button"]');
   }
 
   static async resetCPU(page: Page) {

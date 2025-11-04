@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { MemorySection } from './sections/MemorySection'
 import { ControlUnit } from './sections/ControlUnit'
 import { ALU } from './sections/ALU'
@@ -6,6 +6,8 @@ import { Toolbar } from '@/components/Toolbar'
 import { AddressBus } from './AddressBus'
 import { DataBus } from './DataBus'
 import { Maschinenraum } from './DevMode/Maschinenraum'
+import { ProgramEditorModal } from './ProgramEditorModal'
+import { useProgramHandlers } from '../hooks/useProgramHandlers'
 import { useStore } from '../store/useStore'
 import { useEffect } from 'react'
 
@@ -14,6 +16,7 @@ interface MainInterfaceProps {
 }
 
 export function MainInterface({ 'data-testid': testId }: MainInterfaceProps) {
+  const { showEditor, programText, handleTextChange, handleLoadProgram, handleCancelEditor } = useProgramHandlers();
   const toggleDevMode = useStore(state => state.toggleDevMode);
 
   // Keyboard shortcut to enable/disable dev mode: Ctrl+Shift+D
@@ -59,6 +62,15 @@ export function MainInterface({ 'data-testid': testId }: MainInterfaceProps) {
       
       {/* Dev Mode Maschinenraum Panel */}
       <Maschinenraum />
+      
+      {/* Program Editor Modal */}
+      <ProgramEditorModal 
+        show={showEditor}
+        programText={programText}
+        onTextChange={handleTextChange}
+        onLoad={handleLoadProgram}
+        onCancel={handleCancelEditor}
+      />
     </div>
   )
 } 

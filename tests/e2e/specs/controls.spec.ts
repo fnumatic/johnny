@@ -14,7 +14,7 @@ test.describe('Control Interface', () => {
     await appPage.waitForAppLoad();
   });
 
-  test('should enable start button initially', async ({ page }) => {
+  test('should enable start button initially', async () => {
     await expect(controlUnitPage.startButton).toBeEnabled();
     await expect(controlUnitPage.stopButton).toBeDisabled();
     await expect(controlUnitPage.stepButton).toBeEnabled();
