@@ -1,0 +1,33 @@
+export interface Store {
+  ramHighlight: number;
+  ramSelected: number;
+  ram: number[];
+  microCode: string[];
+  mcHighlight: number;
+  mcOpHighlight: boolean[];
+  addressBus: number;
+  dataBus: number;
+  AddressBusInput: string;
+  DataBusInput: string;
+  ramInput: string;
+  accumulator: number;
+  executionSpeed: number;
+  showDetailControl: boolean;
+  showModal: boolean;
+  mcCounter: number;
+  instructionRegister: number;
+  programmCounter: number;
+  showStartScreen: boolean;
+  commandSelection: number;
+  recordNum: number;
+  pause: boolean;
+  halt: boolean;
+  recording: boolean;
+  recordingCounter: number;
+  turboMode: boolean;
+  bonsaiMode: boolean;
+  showEditor: boolean;
+  editorContent: string;
+  loadMsg: string;
+  setShowStartScreen: (value: boolean) => void;
+} 

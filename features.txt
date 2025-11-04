@@ -1,0 +1,5 @@
+Features
+- direkt in die Zellen schreiben
+- der Pfeil übernimmt die Infos aus der ausgewählten Zeile
+- Zeilen Schieben u.o. neue Zeilen einfügen a la Excel Style mit Referenzen
+- nach den ersten 2 Ziffern das Komma automatisch setzen, wenn 5 Zeichen vorhanden sind
