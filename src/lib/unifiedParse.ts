@@ -1,6 +1,5 @@
 
 import { RAM_SIZE, encodeRam } from './engine';
-import { type Result, Ok, Err } from './funclib';
 
 // Core Types
 export type Type = 'RAM' | 'ISA';
@@ -39,43 +38,17 @@ export interface ParsedProgram {
 
 // Constants are imported from engine.ts
 
-// Re-export functional utilities from funclib for convenience
-export type { Result } from './funclib';
-export { 
-  pipe, 
-  compose, 
-  curry, 
-  safeParseInt, 
-  validateAndMap, 
-  filterMap
-} from './funclib';
 
 
 
-export const safeOpDataToIntegerCode = (opData: string): Result<string> => {
-  try {
-    const result = opDataToIntegerCode(opData);
-    return Ok(result);
-  } catch (error) {
-    return Err((error as Error).message);
-  }
-};
+
+
 
 // Re-export encodeRam from engine for unified access
 export { encodeRam };
 
-export const decodeRam = (cell: number): Result<{ opcode: number; data: number }> => {
-  if (cell < 0 || cell > 99999) {
-    return Err(`RAM cell value out of range: ${cell}. Must be 0-99999`);
-  }
-  return Ok({
-    opcode: Math.floor(cell / 1000),
-    data: cell % 1000
-  });
-};
 
-export const extractOpcode = (cell: number): number => Math.floor(cell / 1000);
-export const extractData = (cell: number): number => cell % 1000;
+
 
 // Pure String Processing Functions
 export const splitLines = (content: string): string[] => content.split('\n');
@@ -102,12 +75,8 @@ export const integerCodeToOpData = (integerCode: string): string => {
     throw new Error(`Invalid integer code: ${integerCode}`);
   }
   
-  const decodeResult = decodeRam(value);
-  if (!decodeResult.ok) {
-    throw new Error((decodeResult as { ok: false; msg: string }).msg);
-  }
-  
-  const { opcode, data } = decodeResult.value;
+  const opcode = Math.floor(value / 1000);
+  const data = value % 1000;
   return `${opcode}.${data.toString().padStart(3, '0')}`;
 };
 
@@ -287,15 +256,11 @@ const fullContainerPipeline = (chunkParser: DefaultChunkParser) => (chunks: stri
 type DefaultChunkParser = (dataPart: string) => DefaultChunk;
 type AddressChunkParser = (valueStr: string, address: number) => number | null;
 type ContainerType = typeof CONTAINER_TYPE.FULL | typeof CONTAINER_TYPE.PARSED;
-type AddressedChunk = { address: number; value: number } | null;
 type DefaultChunk = number ;
 
 
 // Generic addressed chunk parser
 
-function validateValue(value: number | null, address: number): AddressedChunk {
-  return value !== null && isValidRamValue(value) ? { address, value } : null;
-}
 export const parseAddressedChunkFunctional = 
 (valueParser: AddressChunkParser) => (chunk: string) => {
   const parts = chunk.split(':') as [string, string];
@@ -304,7 +269,7 @@ export const parseAddressedChunkFunctional =
   if (!isValidAddress(address)) return null;
   
   const value = valueParser(valueStr, address);
-  return validateValue(value, address);
+  return value !== null && isValidRamValue(value) ? { address, value } : null;
 };
 
 
