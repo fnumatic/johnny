@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import { DEFAULT_MODES, MicrocodeMode, executeInstruction, executeMicroStep, getCurrentMicrocode, flattenMicrocode, str2ram, loadProgram, Microcode, CLEAN_CPU_STATE, CPUState, getMicrocodeDescription, parseMicrocode, ProgramMetadata } from '../lib/engine'
-import { readRamFile } from '../lib/programLoader'
+import { DEFAULT_MODES, MicrocodeMode, executeInstruction, executeMicroStep, getCurrentMicrocode, flattenMicrocode, Microcode, CLEAN_CPU_STATE, CPUState, parseMicrocode, getMicrocodeDescription } from '../lib/engine'
+import { parseProgram, UnifiedMetadata } from '../lib/unifiedParse'
 
 interface ExecutionTraceEntry {
   timestamp: number;
@@ -60,7 +60,7 @@ interface State {
   breakpoints: Set<number>;
   watchedAddresses: Set<number>;
   executionTrace: ExecutionTraceEntry[];
-  currentProgramMetadata: ProgramMetadata | null;
+  currentProgramMetadata: UnifiedMetadata | null;
 }
 
 interface Actions {
@@ -136,7 +136,8 @@ const loadTestProgram = () => {
 3
 10`;
 
-  return str2ram(testProgram);
+  const { ram } = parseProgram(testProgram);
+  return ram;
 };
 
 // Function to generate UI-friendly microcode descriptions
@@ -367,7 +368,7 @@ export const useStore = create<State & Actions>((set, get) => ({
     };
   }),
   loadProgramFromString: (programString) => {
-    const { ram, metadata } = loadProgram(programString);
+    const { ram, metadata } = parseProgram(programString);
 
     set((state) => ({
       cpuState: {
@@ -379,9 +380,10 @@ export const useStore = create<State & Actions>((set, get) => ({
       currentProgramMetadata: metadata,
     }));
   },
-  loadProgramFromFile: async (file) => {
+loadProgramFromFile: async (file) => {
     try {
-      const parsedProgram = await readRamFile(file);
+      const content = await file.text();
+      const parsedProgram = parseProgram(content);
       
       set((state) => ({
         cpuState: {
@@ -389,18 +391,17 @@ export const useStore = create<State & Actions>((set, get) => ({
           ram: parsedProgram.ram,
           microCode: state.cpuState.microCode, // Preserve microcode
         },
-        currentMode: parsedProgram.metadata.computerType,
+        currentMode: parsedProgram.metadata?.isa || 'normal',
         isRunning: false,
-        currentProgramMetadata: {
-          type: parsedProgram.metadata.computerType,
-          description: parsedProgram.metadata.comment,
+        currentProgramMetadata: parsedProgram.metadata ? {
+          type: parsedProgram.metadata.type,
+          description: parsedProgram.metadata.description,
           version: parsedProgram.metadata.version,
-          raw: `V${parsedProgram.metadata.version}:${parsedProgram.metadata.date}:${parsedProgram.metadata.computerType}`
-        },
+          isa: parsedProgram.metadata.isa
+        } : null,
       }));
     } catch (error) {
       console.error('Error loading program from file:', error);
-      throw error;
     }
   },
   runUntilHalt: () => {

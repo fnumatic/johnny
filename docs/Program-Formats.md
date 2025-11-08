@@ -64,6 +64,33 @@ All formats convert to the same internal RAM representation: a 1000-cell array w
 - **V1**: Header optional (both single_line and multi_line)
 - **V2/V3/V4**: Header required `type:description:version:isa`
 
+### Version Format Restrictions
+**CRITICAL**: Each version supports ONLY its designated format:
+
+- **V1**: `integer_code` ONLY
+  - ✅ Raw integers (`1005`, `8002`, `13000`)
+  - ❌ NO dot notation (`1.005`, `8.002`)
+  - ❌ NO op.data format
+  - ❌ NO addressing (`01:1005`)
+
+- **V2**: `op.data` ONLY  
+  - ✅ Dot notation required (`1.005`, `8.002`)
+  - ✅ Header REQUIRED
+  - ❌ NO raw integer_code (`1005`, `8002`)
+  - ❌ NO addressing
+
+- **V3**: `line:integer_code` ONLY
+  - ✅ Addressed integers (`01:1005`, `02:8002`)
+  - ✅ Header REQUIRED
+  - ❌ NO dot notation
+  - ❌ NO raw integer_code without addresses
+
+- **V4**: `line:op.data` ONLY
+  - ✅ Addressed dot notation (`01:1.005`, `02:8.002`)
+  - ✅ Header REQUIRED
+  - ❌ NO raw integer_code
+  - ❌ NO addressing without dots
+
 ### Data Chunk Types Explained
 
 #### 1. integer_code (V1) - Raw Integer Values
@@ -91,10 +118,15 @@ All formats convert to the same internal RAM representation: a 1000-cell array w
 1005     → opcode 01, data 005
 8002     → opcode 08, data 002
 13000    → opcode 13, data 000
-1005     → opcode 01, data 005
 2006     → opcode 02, data 006
 3007     → opcode 03, data 007
 ```
+
+**V1 Format Restrictions**:
+- ⚠️ **V1 does NOT support dot notation** (`1.005` is INVALID)
+- ⚠️ **V1 does NOT support op.data format**
+- ⚠️ **Use V2 format for dot notation with headers**
+- ⚠️ **V1 is integer_code format ONLY**
 
 #### 2. op.data (V2) - Explicit Opcode.Data Format
 **Definition**: Explicit opcode.data format with dot separator
@@ -124,6 +156,12 @@ All formats convert to the same internal RAM representation: a 1000-cell array w
 10.000   → opcode 10, data 000
 0.000    → opcode 00, data 000
 ```
+
+**V2 Format Requirements**:
+- ✅ **Dot notation REQUIRED** (`1.005`, not `1005`)
+- ✅ **Header REQUIRED**: `RAM:{description}:V2:isa`
+- ❌ **Raw integer_code INVALID** (`1005`, `8002`)
+- ❌ **Headerless op.data INVALID** (use V1 for headerless)
 
 #### 3. line:integer_code (V3) - Addressed with Integer Encoding
 **Definition**: Address prefix with colon separator + integer_code encoding
@@ -505,7 +543,7 @@ function detectFormat(content: string): FormatDescriptor {
   const lineFormat = hasSemicolons ? 'single_line' : 'multi_line';
   
   // 3. Map version to datachunk structure
-  const dataChunks = getVersionDataChunks(header.version);
+  const dataChunkFormat = getVersionDataChunkFormat(header.version);
   
   // 4. Validate version-line format compatibility
   if (!isValidVersionFormat(header.version, lineFormat)) {
@@ -542,7 +580,7 @@ function parseUnifiedHeader(content: string): HeaderInfo {
   };
 }
 
-function getVersionDataChunks(version: string): string {
+function getVersionDataChunkFormat(version: string): string {
   switch (version) {
     case 'V1': return 'integer_code';
     case 'V2': return 'op.data';
