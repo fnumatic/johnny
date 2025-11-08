@@ -1,4 +1,4 @@
-import { Result } from './funclib';
+import { Result, Ok, Err } from './funclib';
 
 export interface ParseResult {
   operation: string;
@@ -7,7 +7,7 @@ export interface ParseResult {
   isValid: boolean;
 }
 
-export type ParseResultResult = Result<ParseResult, string>;
+export type ParseResultResult = Result<ParseResult>;
 
 // Functional validation helper
 const validateFormat = (input: string): boolean => {
@@ -119,21 +119,21 @@ export const parseInputResultSafe = (
   input: string,
   opcodeMapping: Record<string, string>,
   hideFetch: boolean = true
-): Result<ParseResult, string> => {
+): Result<ParseResult> => {
   try {
     if (!input || input.trim() === '') {
-      return { success: false, error: 'Empty input' };
+      return Err('Empty input');
     }
 
     if (!validateFormat(input)) {
-      return { success: false, error: 'Invalid format' };
+      return Err('Invalid format');
     }
 
     const result = parseInputResult(input, opcodeMapping, hideFetch);
     return result.isValid 
-      ? { success: true, data: result }
-      : { success: false, error: 'Parsing failed' };
+      ? Ok(result)
+      : Err('Parsing failed');
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return Err(error instanceof Error ? error.message : 'Unknown error');
   }
 };

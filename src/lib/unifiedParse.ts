@@ -1,6 +1,6 @@
 
-import { RAM_SIZE } from './engine';
-import { compose, type Result } from './funclib';
+import { RAM_SIZE, encodeRam } from './engine';
+import { type Result, Ok, Err } from './funclib';
 
 // Core Types
 export type Type = 'RAM' | 'ISA';
@@ -47,56 +47,31 @@ export {
   curry, 
   safeParseInt, 
   validateAndMap, 
-  filterMap, 
-  findOrElse, 
-  createParsePipeline, 
-  updateArrayCell as updateRamCell, 
-  setArrayCells as setRamCells,
-  mapResult,
-  flatMapResult,
-  getResultOrElse,
-  createValidator,
-  combineValidators
+  filterMap
 } from './funclib';
 
-// Safe wrapper functions specific to unified parsing
-export const safeEncodeRam = (opcode: number, data: number): Result<number> => {
-  try {
-    const result = encodeRam(opcode, data);
-    return { success: true, data: result };
-  } catch (error) {
-    return { success: false, error: error as Error };
-  }
-};
+
 
 export const safeOpDataToIntegerCode = (opData: string): Result<string> => {
   try {
     const result = opDataToIntegerCode(opData);
-    return { success: true, data: result };
+    return Ok(result);
   } catch (error) {
-    return { success: false, error: error as Error };
+    return Err((error as Error).message);
   }
 };
 
-// Pure Helper Functions
-export const encodeRam = (opcode: number, data: number): number => {
-  if (opcode < 0 || opcode > 99) {
-    throw new Error(`Opcode out of range: ${opcode}. Must be 0-99`);
-  }
-  if (data < 0 || data > 999) {
-    throw new Error(`Data out of range: ${data}. Must be 0-999`);
-  }
-  return opcode * 1000 + data;
-};
+// Re-export encodeRam from engine for unified access
+export { encodeRam };
 
-export const decodeRam = (cell: number): { opcode: number; data: number } => {
+export const decodeRam = (cell: number): Result<{ opcode: number; data: number }> => {
   if (cell < 0 || cell > 99999) {
-    throw new Error(`RAM cell value out of range: ${cell}. Must be 0-99999`);
+    return Err(`RAM cell value out of range: ${cell}. Must be 0-99999`);
   }
-  return {
+  return Ok({
     opcode: Math.floor(cell / 1000),
     data: cell % 1000
-  };
+  });
 };
 
 export const extractOpcode = (cell: number): number => Math.floor(cell / 1000);
@@ -127,7 +102,12 @@ export const integerCodeToOpData = (integerCode: string): string => {
     throw new Error(`Invalid integer code: ${integerCode}`);
   }
   
-  const { opcode, data } = decodeRam(value);
+  const decodeResult = decodeRam(value);
+  if (!decodeResult.ok) {
+    throw new Error((decodeResult as { ok: false; msg: string }).msg);
+  }
+  
+  const { opcode, data } = decodeResult.value;
   return `${opcode}.${data.toString().padStart(3, '0')}`;
 };
 
@@ -140,7 +120,12 @@ export const opDataToIntegerCode = (opData: string): string => {
     throw new Error(`Invalid op.data format: ${opData}`);
   }
   
-  return encodeRam(opcode, data).toString();
+  const encodeResult = encodeRam(opcode, data);
+  if (!encodeResult.ok) {
+    throw new Error((encodeResult as { ok: false; msg: string }).msg);
+  }
+  
+  return encodeResult.value.toString();
 };
 
 // Content Extraction Functions
@@ -261,7 +246,7 @@ export const detectLineFormat = (content: string): LineFormat => {
 export const parseIntegerChunk = (chunk: string): DefaultChunk => {
   return parseInt(chunk, 10);
 };
-export const parseIntegerValue : AddressChunkParser= (chunk: string, _address: number) => {
+export const parseIntegerValue : AddressChunkParser= (chunk: string) => {
   return  parseInt(chunk, 10) ;
 };
 
@@ -294,14 +279,11 @@ const parseChunkArray =(
   return createParsedProgram(header.raw ? createMetadata(header) : null, ram);
 };
 
-const sparseContainerPipeline = (chunkParser: AddressChunkParser) => compose(
-  buildAddressedRam,
-  (chunks: string[]) => chunks.map(parseAddressedChunkFunctional(chunkParser) )as {address: number; value: number}[],
-);
-const fullContainerPipeline = (chunkParser: DefaultChunkParser) => compose(
-  buildSequentialRam,
-  (chunks: string[]) => chunks.map(chunkParser)
-);
+const sparseContainerPipeline = (chunkParser: AddressChunkParser) => (chunks: string[]) => 
+  buildAddressedRam(chunks.map(parseAddressedChunkFunctional(chunkParser)).filter((v): v is {address: number; value: number} => v !== null));
+
+const fullContainerPipeline = (chunkParser: DefaultChunkParser) => (chunks: string[]) => 
+  buildSequentialRam(chunks.map(chunkParser));
 type DefaultChunkParser = (dataPart: string) => DefaultChunk;
 type AddressChunkParser = (valueStr: string, address: number) => number | null;
 type ContainerType = typeof CONTAINER_TYPE.FULL | typeof CONTAINER_TYPE.PARSED;
@@ -315,16 +297,15 @@ function validateValue(value: number | null, address: number): AddressedChunk {
   return value !== null && isValidRamValue(value) ? { address, value } : null;
 }
 export const parseAddressedChunkFunctional = 
-(valueParser: AddressChunkParser) => compose(
-  ([addressStr, valueStr]: [string, string]) => {
-    const address = parseInt(addressStr, 10);
-    if (!isValidAddress(address)) return null;
-    
-    const value = valueParser(valueStr, address);
-    return validateValue(value, address);
-  },
-  (chunk: string) => chunk.split(':') as [string, string]
-);
+(valueParser: AddressChunkParser) => (chunk: string) => {
+  const parts = chunk.split(':') as [string, string];
+  const [addressStr, valueStr] = parts;
+  const address = parseInt(addressStr, 10);
+  if (!isValidAddress(address)) return null;
+  
+  const value = valueParser(valueStr, address);
+  return validateValue(value, address);
+};
 
 
 const CONTAINER_TYPE = {

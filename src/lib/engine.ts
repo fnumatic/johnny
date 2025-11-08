@@ -1,4 +1,5 @@
 import { assocMut } from "./utils";
+import { Ok, Err, type Result } from './funclib';
 
 // RAM size constant
 export const RAM_SIZE = 1000;
@@ -22,25 +23,28 @@ interface OPData {
 }
 
 /**
- * Parse a RAM cell and return the opcode as an operation name and data as a number.
+ * Parse a RAM cell and return the opcode as an operation name and data as a number with validation.
  * 
  * @param cell - The RAM cell value (e.g., 1020 for opcode 1, data 20)
  * @param microcode - The microcode object containing operations array
- * @returns Object with opcode (operation name) and data (number)
+ * @returns Result containing object with opcode (operation name) and data (number) or error
  * 
  * @example
  * // Using normal microcode
  * const normalMC = parseMicrocode(normalMC, 11);
- * const result = parseOPData(1020, normalMC);
- * // Returns: { opcode: 'TAKE', data: 20 }
+ * const result = decodeRam(1020, normalMC);
+ * // Returns: { success: true, data: { opcode: 'TAKE', data: 20 } }
  * 
  * @example
- * // Using bonsai microcode  
- * const bonsaiMC = parseMicrocode(bonsaiMC, 6);
- * const result = parseOPData(1020, bonsaiMC);
- * // Returns: { opcode: 'INC', data: 20 }
+ * // Invalid cell value
+ * const result = decodeRam(-1, normalMC);
+ * // Returns: { success: false, error: Error(...) }
  */
-export const decodeRam = (cell: number, microcode: Microcode): OPData => {
+export const decodeRam = (cell: number, microcode: Microcode): Result<OPData> => {
+  if (cell < 0 || cell > 99999) {
+    return Err(`RAM cell value out of range: ${cell}. Must be 0-99999`);
+  }
+  
   const opcodeNumber = extractOpcode(cell);
   const data = extractData(cell);
   
@@ -48,7 +52,7 @@ export const decodeRam = (cell: number, microcode: Microcode): OPData => {
   const opcodeMapping = generateOpcodeMapping(microcode.operations);
   const opcode = opcodeMapping[opcodeNumber.toString().padStart(2, '0')] || '';
   
-  return {opcode, data};
+  return Ok({ opcode, data });
 };
 
 /**
@@ -66,20 +70,27 @@ export const toVec = (opData: OPData): [string, number] => {
 };
 
 /**
- * Create a RAM cell from opcode and data.
+ * Create a RAM cell from opcode and data with validation.
  * 
  * Format: ODDD (single digit opcode + 3-digit data) or OODDD (two digit opcode + 3-digit data)
  * 
  * @param opcode - The opcode number (0-99)
- * @param data - The data value (0-999, will be truncated to fit)
- * @returns RAM cell value
+ * @param data - The data value (0-999)
+ * @returns Result containing RAM cell value or error
  * 
  * @example
- * createRamCell(1, 20) // Returns: 1020 (opcode 1, data 20)
- * createRamCell(12, 345) // Returns: 12345 (opcode 12, data 345)
+ * encodeRam(1, 20) // Returns: { success: true, data: 1020 }
+ * encodeRam(-1, 20) // Returns: { success: false, error: Error(...) }
+ * encodeRam(1, 1000) // Returns: { success: false, error: Error(...) }
  */
-export const encodeRam = (opcode: number, data: number): number => {
-  return opcode * 1000 + (data % 1000);
+export const encodeRam = (opcode: number, data: number): Result<number> => {
+  if (opcode < 0 || opcode > 99) {
+    return Err(`Opcode out of range: ${opcode}. Must be 0-99`);
+  }
+  if (data < 0 || data > 999) {
+    return Err(`Data out of range: ${data}. Must be 0-999`);
+  }
+  return Ok(opcode * 1000 + data);
 };
 
 export const bonsaiMC = "8;2;3;5;0;0;0;0;0;0;4;2;18;16;15;1;9;7;0;0;4;2;18;17;15;1;9;7;0;0;11;7;0;0;0;0;0;0;0;0;4;2;18;10;9;7;0;0;0;0;19;7;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;FETCH;INC;DEC;JMP;TST;HLT";

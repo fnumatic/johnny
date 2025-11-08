@@ -11,26 +11,44 @@ import {
 describe('unifiedParse', () => {
   describe('encodeRam and decodeRam', () => {
     it('should encode and decode RAM values correctly', () => {
-      expect(encodeRam(1, 5)).toBe(1005);
-      expect(encodeRam(8, 2)).toBe(8002);
-      expect(encodeRam(13, 0)).toBe(13000);
-      expect(encodeRam(0, 0)).toBe(0);
-      expect(encodeRam(99, 999)).toBe(99999);
+      expect(encodeRam(1, 5)).toEqual({ ok: true, value: 1005 });
+      expect(encodeRam(8, 2)).toEqual({ ok: true, value: 8002 });
+      expect(encodeRam(13, 0)).toEqual({ ok: true, value: 13000 });
+      expect(encodeRam(0, 0)).toEqual({ ok: true, value: 0 });
+      expect(encodeRam(99, 999)).toEqual({ ok: true, value: 99999 });
 
-      expect(decodeRam(1005)).toEqual({ opcode: 1, data: 5 });
-      expect(decodeRam(8002)).toEqual({ opcode: 8, data: 2 });
-      expect(decodeRam(13000)).toEqual({ opcode: 13, data: 0 });
-      expect(decodeRam(0)).toEqual({ opcode: 0, data: 0 });
-      expect(decodeRam(99999)).toEqual({ opcode: 99, data: 999 });
+      expect(decodeRam(1005)).toEqual({ ok: true, value: { opcode: 1, data: 5 } });
+      expect(decodeRam(8002)).toEqual({ ok: true, value: { opcode: 8, data: 2 } });
+      expect(decodeRam(13000)).toEqual({ ok: true, value: { opcode: 13, data: 0 } });
+      expect(decodeRam(0)).toEqual({ ok: true, value: { opcode: 0, data: 0 } });
+      expect(decodeRam(99999)).toEqual({ ok: true, value: { opcode: 99, data: 999 } });
     });
 
-    it('should throw errors for out of range values', () => {
-      expect(() => encodeRam(-1, 0)).toThrow('Opcode out of range');
-      expect(() => encodeRam(100, 0)).toThrow('Opcode out of range');
-      expect(() => encodeRam(0, -1)).toThrow('Data out of range');
-      expect(() => encodeRam(0, 1000)).toThrow('Data out of range');
-      expect(() => decodeRam(-1)).toThrow('RAM cell value out of range');
-      expect(() => decodeRam(100000)).toThrow('RAM cell value out of range');
+    it('should return errors for out of range values', () => {
+      expect(encodeRam(-1, 0)).toEqual({ 
+        ok: false, 
+        msg: 'Opcode out of range: -1. Must be 0-99' 
+      });
+      expect(encodeRam(100, 0)).toEqual({ 
+        ok: false, 
+        msg: 'Opcode out of range: 100. Must be 0-99' 
+      });
+      expect(encodeRam(0, -1)).toEqual({ 
+        ok: false, 
+        msg: 'Data out of range: -1. Must be 0-999' 
+      });
+      expect(encodeRam(0, 1000)).toEqual({ 
+        ok: false, 
+        msg: 'Data out of range: 1000. Must be 0-999' 
+      });
+      expect(decodeRam(-1)).toEqual({ 
+        ok: false, 
+        msg: 'RAM cell value out of range: -1. Must be 0-99999' 
+      });
+      expect(decodeRam(100000)).toEqual({ 
+        ok: false, 
+        msg: 'RAM cell value out of range: 100000. Must be 0-99999' 
+      });
     });
   });
 

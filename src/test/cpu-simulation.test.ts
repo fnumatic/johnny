@@ -145,7 +145,10 @@ describe('CPU Simulation - via macrosteps', () => {
   })
   it('should load value from RAM into accumulator (TAKE)', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(1, 20) // TAKE 20 (opcode 1, address 20)
+    const encodeResult = encodeRam(1, 20) // TAKE 20 (opcode 1, address 20)
+    if (encodeResult.ok) {
+      ram[0] = encodeResult.value
+    }
     ram[20] = 42
 
     // Read MC string, parse it, and flatten it
@@ -163,9 +166,18 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should add one value to the accumulator', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(1, 20) // TAKE 20 (opcode 1)
-    ram[1] = encodeRam(2, 21) // ADD 21 (opcode 2)
-    ram[2] = encodeRam(10, 0) // HLT (opcode 10)
+    const encodeResult0 = encodeRam(1, 20) // TAKE 20 (opcode 1)
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(2, 21) // ADD 21 (opcode 2)
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
+    const encodeResult2 = encodeRam(10, 0) // HLT (opcode 10)
+    if (encodeResult2.ok) {
+      ram[2] = encodeResult2.value
+    }
     ram[20] = 10
     ram[21] = 5
 
@@ -188,10 +200,22 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should add two values to the accumulator', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(1, 20) // TAKE 20 (opcode 1)
-    ram[1] = encodeRam(2, 21) // ADD 21 (opcode 2)
-    ram[2] = encodeRam(2, 22) // ADD 22 (opcode 2)
-    ram[3] = encodeRam(10, 0) // HLT (opcode 10)
+    const encodeResult0 = encodeRam(1, 20) // TAKE 20 (opcode 1)
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(2, 21) // ADD 21 (opcode 2)
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
+    const encodeResult2 = encodeRam(2, 22) // ADD 22 (opcode 2)
+    if (encodeResult2.ok) {
+      ram[2] = encodeResult2.value
+    }
+    const encodeResult3 = encodeRam(10, 0) // HLT (opcode 10)
+    if (encodeResult3.ok) {
+      ram[3] = encodeResult3.value
+    }
     ram[20] = 10
     ram[21] = 5
     ram[22] = 3
@@ -220,9 +244,18 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should subtract one value from the accumulator', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(1, 20) // TAKE 20
-    ram[1] = encodeRam(3, 22) // SUB 22
-    ram[2] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(1, 20) // TAKE 20
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(3, 22) // SUB 22
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
+    const encodeResult2 = encodeRam(10, 0) // HLT
+    if (encodeResult2.ok) {
+      ram[2] = encodeResult2.value
+    }
     ram[20] = 10
     ram[22] = 3
 
@@ -245,10 +278,22 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should subtract two values from the accumulator', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(1, 20) // TAKE 20
-    ram[1] = encodeRam(3, 22) // SUB 22
-    ram[2] = encodeRam(3, 23) // SUB 23
-    ram[3] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(1, 20) // TAKE 20
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(3, 22) // SUB 22
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
+    const encodeResult2 = encodeRam(3, 23) // SUB 23
+    if (encodeResult2.ok) {
+      ram[2] = encodeResult2.value
+    }
+    const encodeResult3 = encodeRam(10, 0) // HLT
+    if (encodeResult3.ok) {
+      ram[3] = encodeResult3.value
+    }
     ram[20] = 20
     ram[22] = 5
     ram[23] = 3
@@ -277,9 +322,18 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should save the accumulator to RAM', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(1, 20) // TAKE 20
-    ram[1] = encodeRam(4, 44) // SAVE 44
-    ram[2] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(1, 20) // TAKE 20
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(4, 44) // SAVE 44
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
+    const encodeResult2 = encodeRam(10, 0) // HLT
+    if (encodeResult2.ok) {
+      ram[2] = encodeResult2.value
+    }
     ram[20] = 42
 
     // Read MC string, parse it, and flatten it
@@ -301,8 +355,14 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should decrement the value in ram', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(8, 20) // DEC 20 - put at position 0 since PC starts at 0
-    ram[1] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(8, 20) // DEC 20 - put at position 0 since PC starts at 0
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(10, 0) // HLT
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
     ram[20] = 23
 
     // Read MC string, parse it, and flatten it
@@ -319,9 +379,18 @@ describe('CPU Simulation - via macrosteps', () => {
   })
   it('should increment the value in ram', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(7, 20) // INC 20 - put at position 0 since PC starts at 0
-    ram[1] = encodeRam(10, 0) // HLT
-    ram[2] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(7, 20) // INC 20 - put at position 0 since PC starts at 0
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(10, 0) // HLT
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
+    const encodeResult2 = encodeRam(10, 0) // HLT
+    if (encodeResult2.ok) {
+      ram[2] = encodeResult2.value
+    }
     ram[20] = 23
 
     // Read MC string, parse it, and flatten it
@@ -339,10 +408,22 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should jump to a specific address', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(5, 11) // JMP 11
-    ram[1] = encodeRam(1, 20) // TAKE 20 (should not reach this)
-    ram[2] = encodeRam(10, 0) // HLT (should not reach this)
-    ram[11] = encodeRam(10, 0) // HLT (should reach this)
+    const encodeResult0 = encodeRam(5, 11) // JMP 11
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(1, 20) // TAKE 20 (should not reach this)
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
+    const encodeResult2 = encodeRam(10, 0) // HLT (should not reach this)
+    if (encodeResult2.ok) {
+      ram[2] = encodeResult2.value
+    }
+    const encodeResult11 = encodeRam(10, 0) // HLT (should reach this)
+    if (encodeResult11.ok) {
+      ram[11] = encodeResult11.value
+    }
     ram[20] = 42
 
     // Read MC string, parse it, and flatten it
@@ -364,8 +445,14 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should test the value in ram if it is zero', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(6, 20) // TST 20
-    ram[1] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(6, 20) // TST 20
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(10, 0) // HLT
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
     ram[20] = 0
 
     // Read MC string, parse it, and flatten it
@@ -385,9 +472,18 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should test the value in ram if it is not zero', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(6, 20) // TST 20
-    ram[1] = encodeRam(1, 21) // TAKE 21
-    ram[2] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(6, 20) // TST 20
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(1, 21) // TAKE 21
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
+    const encodeResult2 = encodeRam(10, 0) // HLT
+    if (encodeResult2.ok) {
+      ram[2] = encodeResult2.value
+    }
     ram[20] = 42
     ram[21] = 23
 
@@ -410,13 +506,27 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should jump to a specific address when specific value in ram is not zero', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(6, 20) // TST
-    ram[1] = encodeRam(5, 11) // JMP 11 (only if acc is not zero)
-    ram[2] = encodeRam(1, 21) // TAKE 21
-    ram[3] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(6, 20) // TST
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(5, 11) // JMP 11 (only if acc is not zero)
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
+    const encodeResult2 = encodeRam(1, 21) // TAKE 21
+    if (encodeResult2.ok) {
+      ram[2] = encodeResult2.value
+    }
+    const encodeResult3 = encodeRam(10, 0) // HLT
+    if (encodeResult3.ok) {
+      ram[3] = encodeResult3.value
+    }
+    const encodeResult11 = encodeRam(10, 0) // HLT
+    if (encodeResult11.ok) {
+      ram[11] = encodeResult11.value
+    }
     ram[20] = 42
-    ram[21] = 23
-    ram[11] = encodeRam(10, 0) // HLT
 
     // Read MC string, parse it, and flatten it
     const parsedMC = parseMicrocode(normalMC, 11)
@@ -436,8 +546,14 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should nullify an address', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(9, 20) // NULL 20
-    ram[1] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(9, 20) // NULL 20
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(10, 0) // HLT
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
     ram[20] = 42
 
     // Read MC string, parse it, and flatten it
@@ -454,8 +570,14 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should halt the program', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(1, 20) // TAKE 20
-    ram[1] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(1, 20) // TAKE 20
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(10, 0) // HLT
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
     ram[20] = 42
 
     // Read MC string, parse it, and flatten it
@@ -475,10 +597,22 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should handle overflow protection correctly', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(1, 20) // TAKE 20
-    ram[1] = encodeRam(2, 21) // ADD 21
-    ram[2] = encodeRam(7, 0) // INC
-    ram[3] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(1, 20) // TAKE 20
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(2, 21) // ADD 21
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
+    const encodeResult2 = encodeRam(7, 0) // INC
+    if (encodeResult2.ok) {
+      ram[2] = encodeResult2.value
+    }
+    const encodeResult3 = encodeRam(10, 0) // HLT
+    if (encodeResult3.ok) {
+      ram[3] = encodeResult3.value
+    }
     ram[20] = 999
     ram[21] = 1
 
@@ -499,8 +633,14 @@ describe('CPU Simulation - via macrosteps', () => {
 
   it('should handle underflow protection correctly', () => {
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(8, 20) // DEC 20
-    ram[1] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(8, 20) // DEC 20
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(10, 0) // HLT
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
     ram[20] = 0
 
     // Read MC string, parse it, and flatten it
@@ -518,10 +658,22 @@ describe('CPU Simulation - via macrosteps', () => {
   it('should execute a complete program correctly', () => {
     // Program: acc := RAM[20] + RAM[21], save to RAM[22], then halt
     const ram = Array(RAM_SIZE).fill(0)
-    ram[0] = encodeRam(1, 20) // TAKE 20
-    ram[1] = encodeRam(2, 21) // ADD 21
-    ram[2] = encodeRam(4, 22) // SAVE 22
-    ram[3] = encodeRam(10, 0) // HLT
+    const encodeResult0 = encodeRam(1, 20) // TAKE 20
+    if (encodeResult0.ok) {
+      ram[0] = encodeResult0.value
+    }
+    const encodeResult1 = encodeRam(2, 21) // ADD 21
+    if (encodeResult1.ok) {
+      ram[1] = encodeResult1.value
+    }
+    const encodeResult2 = encodeRam(4, 22) // SAVE 22
+    if (encodeResult2.ok) {
+      ram[2] = encodeResult2.value
+    }
+    const encodeResult3 = encodeRam(10, 0) // HLT
+    if (encodeResult3.ok) {
+      ram[3] = encodeResult3.value
+    }
     ram[20] = 7
     ram[21] = 5
 
