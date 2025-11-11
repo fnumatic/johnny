@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   parseProgram,
   parseUnifiedHeader,
+  parseHeaderParts,
   encodeRam,
   integerCodeToOpData,
   opDataToIntegerCode
@@ -101,6 +102,28 @@ describe('unifiedParse', () => {
       expect(() => parseUnifiedHeader('RAM:{invalid')).toThrow('Invalid header format');
       expect(() => parseUnifiedHeader('RAM:{program}:V5:normal')).toThrow('Invalid version');
       expect(() => parseUnifiedHeader('RAM:{program}:V2:invalid')).toThrow('Invalid ISA');
+    });
+
+    it('should handle safe header parsing', () => {
+      const validResult = parseHeaderParts('RAM:{program}:V2:normal');
+      expect(validResult.ok).toBe(true);
+      if (validResult.ok) {
+        expect(validResult.value.type).toBe('RAM');
+        expect(validResult.value.version).toBe('V2');
+        expect(validResult.value.isa).toBe('normal');
+      }
+
+      const invalidResult = parseHeaderParts('RAM:{invalid');
+      expect(invalidResult.ok).toBe(false);
+      if (!invalidResult.ok) {
+        expect(invalidResult.msg).toContain('Invalid header format');
+      }
+
+      const invalidVersionResult = parseHeaderParts('RAM:{program}:V5:normal');
+      expect(invalidVersionResult.ok).toBe(false);
+      if (!invalidVersionResult.ok) {
+        expect(invalidVersionResult.msg).toContain('Invalid version');
+      }
     });
   });
 

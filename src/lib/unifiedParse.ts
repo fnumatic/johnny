@@ -1,5 +1,6 @@
 
 import { RAM_SIZE, encodeRam } from './engine';
+import { Ok, Err, tryCatch, Result, validateAndMap } from './funclib';
 
 // Core Types
 export type Type = 'RAM' | 'ISA';
@@ -36,18 +37,8 @@ export interface ParsedProgram {
   ram: number[];
 }
 
-// Constants are imported from engine.ts
-
-
-
-
-
-
-
 // Re-export encodeRam from engine for unified access
 export { encodeRam };
-
-
 
 
 // Pure String Processing Functions
@@ -67,6 +58,37 @@ export const isValidRamValue = (value: number): boolean =>
   !isNaN(value) && value >= 0 && value <= 99999;
 export const isValidAddress = (address: number): boolean => 
   !isNaN(address) && address >= 0 && address < RAM_SIZE;
+
+// Specialized validation helpers using functional patterns
+export const validateType = validateAndMap(
+  isValidType,
+  (type: string): Type => type as Type,
+  (type: string) => new Error(`Invalid type: ${type}. Supported: RAM, ISA`)
+);
+
+export const validateVersion = validateAndMap(
+  isValidVersion,
+  (version: string): Version => version as Version,
+  (version: string) => new Error(`Invalid version: ${version}. Supported: V1, V2, V3, V4`)
+);
+
+export const validateISA = validateAndMap(
+  isValidISA,
+  (isa: string): ISA => isa as ISA,
+  (isa: string) => new Error(`Invalid ISA: ${isa}. Supported: normal, bonsai`)
+);
+
+export const validateRamValue = validateAndMap(
+  isValidRamValue,
+  (value: number) => value,
+  (value: number) => new Error(`Invalid RAM value: ${value}. Must be 0-99999`)
+);
+
+export const validateAddress = validateAndMap(
+  isValidAddress,
+  (address: number) => address,
+  (address: number) => new Error(`Invalid address: ${address}. Must be 0-${RAM_SIZE - 1}`)
+);
 
 // Data Conversion Utilities
 export const integerCodeToOpData = (integerCode: string): string => {
@@ -97,6 +119,13 @@ export const opDataToIntegerCode = (opData: string): string => {
   return encodeResult.value.toString();
 };
 
+// Safe versions using functional error handling
+export const integerCodeToOpDataSafe = (integerCode: string): Result<string> => 
+  tryCatch(() => integerCodeToOpData(integerCode));
+
+export const opDataToIntegerCodeSafe = (opData: string): Result<string> => 
+  tryCatch(() => opDataToIntegerCode(opData));
+
 // Content Extraction Functions
 export const extractDataAndHeader = (content: string): {
   header: HeaderInfo;
@@ -107,13 +136,19 @@ export const extractDataAndHeader = (content: string): {
   const dataContent = !header.raw
     ? content
     : content.substring(header.raw.length).replace(/^;?/, '');
+  
   // Extract data based on format
-  const dataParts = header.lineFormat === LINE_FORMATS.SINGLE_LINE 
-   ? splitSemicolons(dataContent)
-   : splitLines(dataContent)
-      .filter(line => !shouldSkip(trim(line)))
-      .map(line => trim(line));
-  return { header, dataParts  };
+  const rawParts = header.lineFormat === LINE_FORMATS.SINGLE_LINE 
+    ? splitSemicolons(dataContent)
+    : splitLines(dataContent);
+  
+  // Process parts using functional composition
+  
+  const dataParts = rawParts
+    .filter(line => !shouldSkip(trim(line))) // Filter out empty or comment lines
+    .map(line => trim(line)) // Trim each line
+
+  return { header, dataParts };
 };
 
 // RAM Building Functions
@@ -144,26 +179,29 @@ export const createParsedProgram = (
   ram: number[]
 ): ParsedProgram => ({ metadata, ram });
 
-export const parseHeaderParts = (headerLine: string): HeaderInfo => {
+
+export const parseHeaderParts = (headerLine: string): Result<HeaderInfo> => {
   const parts = headerLine.split(':');
   if (parts.length < 4) {
-    //return DEFAULT_RAM_HEADER;
-    throw new Error(`Invalid header format: ${headerLine}. Expected: type:description:version:isa`);
+    return Err(`Invalid header format: ${headerLine}. Expected: type:description:version:isa`);
   }
 
   const type = parts[0];
-  if (!isValidType(type)) {
-    throw new Error(`Invalid type: ${type}. Supported: RAM, ISA`);
+  const typeResult = validateType(type);
+  if (!typeResult.ok) {
+    return typeResult;
   }
   
   const version = parts[parts.length - 2];
-  if (!isValidVersion(version)) {
-    throw new Error(`Invalid version: ${version}. Supported: V1, V2, V3, V4`);
+  const versionResult = validateVersion(version);
+  if (!versionResult.ok) {
+    return versionResult;
   }
 
   const isa = parts[parts.length - 1];
-  if (!isValidISA(isa)) {
-    throw new Error(`Invalid ISA: ${isa}. Supported: normal, bonsai`);
+  const isaResult = validateISA(isa);
+  if (!isaResult.ok) {
+    return isaResult;
   }
 
   let description = parts.slice(1, -2).join(':').replace(/^\{|\}$/g, '');
@@ -171,17 +209,19 @@ export const parseHeaderParts = (headerLine: string): HeaderInfo => {
     description = '';
   }
 
-  const containerType = version === 'V1' || version === 'V2' ? CONTAINER_TYPE.FULL : CONTAINER_TYPE.PARSED;
+  const containerType = versionResult.value === 'V1' || versionResult.value === 'V2' 
+    ? CONTAINER_TYPE.FULL 
+    : CONTAINER_TYPE.PARSED;
   const lineFormat = LINE_FORMATS.SINGLE_LINE;
-  return {
-    type,
+  return Ok({
+    type: typeResult.value,
     description,
-    version,
-    isa,
+    version: versionResult.value,
+    isa: isaResult.value,
     raw: headerLine,
     containerType,
     lineFormat
-  };
+  });
 };
 
 export const parseUnifiedHeader = (content: string): HeaderInfo => {
@@ -198,14 +238,16 @@ export const parseUnifiedHeader = (content: string): HeaderInfo => {
     ? firstLine.substring(0, firstLine.indexOf(';'))
     : firstLine;
   
-  // Parse header and add format info
-  const header = parseHeaderParts(headerText);
-  const lineFormat = detectLineFormat(content);
+  // Parse header using safe function
+  const headerResult = parseHeaderParts(headerText);
+  if (!headerResult.ok) {
+    throw new Error(headerResult.msg);
+  }
   
-  return { ...header, lineFormat };
+  // Add line format info
+  const lineFormat = detectLineFormat(content);
+  return { ...headerResult.value, lineFormat };
 };
-
-
 
 export const detectLineFormat = (content: string): LineFormat => {
   return content.includes('\n') ? LINE_FORMATS.MULTI_LINE : LINE_FORMATS.SINGLE_LINE;
@@ -220,22 +262,22 @@ export const parseIntegerValue : AddressChunkParser= (chunk: string) => {
 };
 
 export const parseOpDataChunk = (chunk: string): DefaultChunk => {
-  try {
-    const value = parseInt(opDataToIntegerCode(chunk), 10);
-    return isValidRamValue(value) ? value : 0;
-  } catch (error) {
-    console.warn(`Skipping invalid op.data: ${chunk}`, error);
+  const result = opDataToIntegerCodeSafe(chunk);
+  if (!result.ok) {
+    console.warn(`Skipping invalid op.data: ${chunk}`, result.msg);
     return 0;
   }
+  const value = parseInt(result.value, 10);
+  return isValidRamValue(value) ? value : 0;
 };
 
 const parseOpDataValue: AddressChunkParser = (valueStr: string, address: number) => {
-  try {
-    return parseInt(opDataToIntegerCode(valueStr), 10);
-  } catch (error) {
-    console.warn(`Skipping invalid op.data at address ${address}: ${valueStr}`, error);
+  const result = opDataToIntegerCodeSafe(valueStr);
+  if (!result.ok) {
+    console.warn(`Skipping invalid op.data at address ${address}: ${valueStr}`, result.msg);
     return null;
   }
+  return parseInt(result.value, 10);
 };
 
 const parseChunkArray =(
@@ -258,18 +300,20 @@ type AddressChunkParser = (valueStr: string, address: number) => number | null;
 type ContainerType = typeof CONTAINER_TYPE.FULL | typeof CONTAINER_TYPE.PARSED;
 type DefaultChunk = number ;
 
-
-// Generic addressed chunk parser
-
 export const parseAddressedChunkFunctional = 
 (valueParser: AddressChunkParser) => (chunk: string) => {
   const parts = chunk.split(':') as [string, string];
   const [addressStr, valueStr] = parts;
   const address = parseInt(addressStr, 10);
-  if (!isValidAddress(address)) return null;
   
-  const value = valueParser(valueStr, address);
-  return value !== null && isValidRamValue(value) ? { address, value } : null;
+  const addressResult = validateAddress(address);
+  if (!addressResult.ok) return null;
+  
+  const value = valueParser(valueStr, addressResult.value);
+  if (value === null) return null;
+  
+  const valueResult = validateRamValue(value);
+  return valueResult.ok ? { address: addressResult.value, value: valueResult.value } : null;
 };
 
 
@@ -283,7 +327,6 @@ const LINE_FORMATS = {
   SINGLE_LINE: 'single_line' as const,
   MULTI_LINE: 'multi_line' as const
 } as const;
-
 
 
 // Default header for V1 headerless RAM programs
