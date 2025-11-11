@@ -1,20 +1,19 @@
 import { describe, it, expect } from 'vitest'
-import { 
-  encodeRam,
-  decodeRam,
-  extractOpcode,
-  extractData,
+import {
   bonsaiMC,
   normalMC,
   parseMicrocode,
   generateOpcodeMapping,
-  toVec,
   RAM_SIZE,
   RAM_CELL_OPCODE_DIGITS,
   RAM_CELL_DATA_DIGITS,
-  RAM_CELL_TOTAL_DIGITS
+  RAM_CELL_TOTAL_DIGITS,
+  extractOpcode,
+  extractData,
+  encodeRam,
+  decodeRam,
+  toVec
 } from '../lib/engine'
-
 
 describe('Engine - RAM Configuration', () => {
   it('should have RAM_SIZE set to 1000', () => {
@@ -41,22 +40,18 @@ describe('Engine - RAM Cell Structure', () => {
     expect(extractData(5000)).toBe(0) // 5000 = opcode 5, data 0
   })
 
-it('should create RAM cell from opcode and data correctly', () => {
-    expect(encodeRam(12, 0)).toEqual({ ok: true, value: 12000 })
-    expect(encodeRam(5, 123)).toEqual({ ok: true, value: 5123 })
-    expect(encodeRam(1, 42)).toEqual({ ok: true, value: 1042 })
+  it('should create RAM cell from opcode and data correctly', () => {
+    expect(encodeRam(12, 0)).toBe(12000)
+    expect(encodeRam(5, 123)).toBe(5123) // Single digit opcode: 5 * 1000 + 123 = 5123
+    expect(encodeRam(1, 42)).toBe(1042) // Single digit opcode: 1 * 1000 + 42 = 1042
   })
 
   it('should round-trip opcode and data extraction', () => {
     const opcode = 12
     const data = 345
-    const cellResult = encodeRam(opcode, data)
-    expect(cellResult.ok).toBe(true)
-    if (cellResult.ok) {
-      const cell = cellResult.value
-      expect(extractOpcode(cell)).toBe(opcode)
-      expect(extractData(cell)).toBe(data)
-    }
+    const cell = encodeRam(opcode, data)
+    expect(extractOpcode(cell)).toBe(opcode)
+    expect(extractData(cell)).toBe(data)
   })
 })
 
@@ -273,186 +268,60 @@ describe('Engine - RAM Cell Parsing', () => {
 
   it('should decode all bonsai microcode operations correctly', () => {
     const microCode = parseMicrocode(bonsaiMC, 6)
-    const incResult = encodeRam(1, 123)
-    const decResult = encodeRam(2, 456)
-    const jmpResult = encodeRam(3, 789)
-    const tstResult = encodeRam(4, 234)
-    const hltResult = encodeRam(5, 567)
-    
-    expect(incResult.ok).toBe(true)
-    expect(decResult.ok).toBe(true)
-    expect(jmpResult.ok).toBe(true)
-    expect(tstResult.ok).toBe(true)
-    expect(hltResult.ok).toBe(true)
-    
-    if (incResult.ok && decResult.ok && jmpResult.ok && 
-        tstResult.ok && hltResult.ok) {
-      const incDecode = decodeRam(incResult.value, microCode)
-      const decDecode = decodeRam(decResult.value, microCode)
-      const jmpDecode = decodeRam(jmpResult.value, microCode)
-      const tstDecode = decodeRam(tstResult.value, microCode)
-      const hltDecode = decodeRam(hltResult.value, microCode)
-      
-      expect(incDecode.ok).toBe(true)
-      expect(decDecode.ok).toBe(true)
-      expect(jmpDecode.ok).toBe(true)
-      expect(tstDecode.ok).toBe(true)
-      expect(hltDecode.ok).toBe(true)
-      
-      if (incDecode.ok && decDecode.ok && jmpDecode.ok && 
-          tstDecode.ok && hltDecode.ok) {
-        expect(toVec(incDecode.value)).toStrictEqual(['INC', 123])
-        expect(toVec(decDecode.value)).toStrictEqual(['DEC', 456])
-        expect(toVec(jmpDecode.value)).toStrictEqual(['JMP', 789])
-        expect(toVec(tstDecode.value)).toStrictEqual(['TST', 234])
-        expect(toVec(hltDecode.value)).toStrictEqual(['HLT', 567])
-      }
-    }
+    const inc = encodeRam(1, 123)
+    const dec = encodeRam(2, 456)
+    const jmp = encodeRam(3, 789)
+    const tst = encodeRam(4, 234)
+    const hlt = encodeRam(5, 567)
+    expect(toVec(decodeRam(inc, microCode))).toStrictEqual(['INC', 123])
+    expect(toVec(decodeRam(dec, microCode))).toStrictEqual(['DEC', 456])
+    expect(toVec(decodeRam(jmp, microCode))).toStrictEqual(['JMP', 789])
+    expect(toVec(decodeRam(tst, microCode))).toStrictEqual(['TST', 234])
+    expect(toVec(decodeRam(hlt, microCode))).toStrictEqual(['HLT', 567])
   })
 
   it('should decode all normal microcode operations correctly', () => {
     const microCode = parseMicrocode(normalMC, 11)
-    const takeResult = encodeRam(1, 123)
-    const addResult = encodeRam(2, 456)
-    const subResult = encodeRam(3, 789)
-    const saveResult = encodeRam(4, 234)
-    const jmpResult = encodeRam(5, 567)
-    const tstResult = encodeRam(6, 890)
-    const incResult = encodeRam(7, 345)
-    const decResult = encodeRam(8, 678)
-    const nulResult = encodeRam(9, 901)
-    const hltResult = encodeRam(10, 0)
-    
-    const results = [takeResult, addResult, subResult, saveResult, jmpResult, 
-                    tstResult, incResult, decResult, nulResult, hltResult]
-    results.forEach(result => expect(result.ok).toBe(true))
-    
-    if (results.every(r => r.ok)) {
-      const takeDecode = decodeRam((takeResult as any).value, microCode)
-      const addDecode = decodeRam((addResult as any).value, microCode)
-      const subDecode = decodeRam((subResult as any).value, microCode)
-      const saveDecode = decodeRam((saveResult as any).value, microCode)
-      const jmpDecode = decodeRam((jmpResult as any).value, microCode)
-      const tstDecode = decodeRam((tstResult as any).value, microCode)
-      const incDecode = decodeRam((incResult as any).value, microCode)
-      const decDecode = decodeRam((decResult as any).value, microCode)
-      const nulDecode = decodeRam((nulResult as any).value, microCode)
-      const hltDecode = decodeRam((hltResult as any).value, microCode)
-      
-      const decodes = [takeDecode, addDecode, subDecode, saveDecode, jmpDecode,
-                     tstDecode, incDecode, decDecode, nulDecode, hltDecode]
-      decodes.forEach(decode => expect(decode.ok).toBe(true))
-      
-      if (decodes.every(d => d.ok)) {
-        expect(toVec((takeDecode as any).value)).toStrictEqual(['TAKE', 123])
-        expect(toVec((addDecode as any).value)).toStrictEqual(['ADD', 456])
-        expect(toVec((subDecode as any).value)).toStrictEqual(['SUB', 789])
-        expect(toVec((saveDecode as any).value)).toStrictEqual(['SAVE', 234])
-        expect(toVec((jmpDecode as any).value)).toStrictEqual(['JMP', 567])
-        expect(toVec((tstDecode as any).value)).toStrictEqual(['TST', 890])
-        expect(toVec((incDecode as any).value)).toStrictEqual(['INC', 345])
-        expect(toVec((decDecode as any).value)).toStrictEqual(['DEC', 678])
-        expect(toVec((nulDecode as any).value)).toStrictEqual(['NULL', 901])
-        expect(toVec((hltDecode as any).value)).toStrictEqual(['HLT', 0])
-      }
-    }
-  })
-
-  it('should decode all normal microcode operations correctly', () => {
-    const microCode = parseMicrocode(normalMC, 11)
-    const takeResult = encodeRam(1, 123)
-    const addResult = encodeRam(2, 456)
-    const subResult = encodeRam(3, 789)
-    const saveResult = encodeRam(4, 234)
-    const jmpResult = encodeRam(5, 567)
-    const tstResult = encodeRam(6, 890)
-    const incResult = encodeRam(7, 345)
-    const decResult = encodeRam(8, 678)
-    const nullResult = encodeRam(9, 901)
-    const hltResult = encodeRam(10, 432)
-    
-    const results = [takeResult, addResult, subResult, saveResult, jmpResult, 
-                    tstResult, incResult, decResult, nullResult, hltResult]
-    results.forEach(result => expect(result.ok).toBe(true))
-    
-    if (results.every(r => r.ok)) {
-      const takeData = (takeResult as any).value
-      const addData = (addResult as any).value
-      const subData = (subResult as any).value
-      const saveData = (saveResult as any).value
-      const jmpData = (jmpResult as any).value
-      const tstData = (tstResult as any).value
-      const incData = (incResult as any).value
-      const decData = (decResult as any).value
-      const nullData = (nullResult as any).value
-      const hltData = (hltResult as any).value
-      
-      const takeDecode = decodeRam(takeData, microCode)
-      const addDecode = decodeRam(addData, microCode)
-      const subDecode = decodeRam(subData, microCode)
-      const saveDecode = decodeRam(saveData, microCode)
-      const jmpDecode = decodeRam(jmpData, microCode)
-      const tstDecode = decodeRam(tstData, microCode)
-      const incDecode = decodeRam(incData, microCode)
-      const decDecode = decodeRam(decData, microCode)
-      const nullDecode = decodeRam(nullData, microCode)
-      const hltDecode = decodeRam(hltData, microCode)
-      
-      const decodes = [takeDecode, addDecode, subDecode, saveDecode, jmpDecode,
-                      tstDecode, incDecode, decDecode, nullDecode, hltDecode]
-      decodes.forEach(decode => expect(decode.ok).toBe(true))
-      
-      if (decodes.every(d => d.ok)) {
-        expect(toVec((takeDecode as any).value)).toStrictEqual(['TAKE', 123])
-        expect(toVec((addDecode as any).value)).toStrictEqual(['ADD', 456])
-        expect(toVec((subDecode as any).value)).toStrictEqual(['SUB', 789])
-        expect(toVec((saveDecode as any).value)).toStrictEqual(['SAVE', 234])
-        expect(toVec((jmpDecode as any).value)).toStrictEqual(['JMP', 567])
-        expect(toVec((tstDecode as any).value)).toStrictEqual(['TST', 890])
-        expect(toVec((incDecode as any).value)).toStrictEqual(['INC', 345])
-        expect(toVec((decDecode as any).value)).toStrictEqual(['DEC', 678])
-        expect(toVec((nullDecode as any).value)).toStrictEqual(['NULL', 901])
-        expect(toVec((hltDecode as any).value)).toStrictEqual(['HLT', 432])
-      }
-    }
+    const take = encodeRam(1, 123)
+    const add = encodeRam(2, 456)
+    const sub = encodeRam(3, 789)
+    const save = encodeRam(4, 234)
+    const jmp = encodeRam(5, 567)
+    const tst = encodeRam(6, 890)
+    const inc = encodeRam(7, 345)
+    const dec = encodeRam(8, 678)
+    const null_ = encodeRam(9, 901)
+    const hlt = encodeRam(10, 432)
+    expect(toVec(decodeRam(take, microCode))).toStrictEqual(['TAKE', 123])
+    expect(toVec(decodeRam(add, microCode))).toStrictEqual(['ADD', 456])
+    expect(toVec(decodeRam(sub, microCode))).toStrictEqual(['SUB', 789])
+    expect(toVec(decodeRam(save, microCode))).toStrictEqual(['SAVE', 234])
+    expect(toVec(decodeRam(jmp, microCode))).toStrictEqual(['JMP', 567])
+    expect(toVec(decodeRam(tst, microCode))).toStrictEqual(['TST', 890])
+    expect(toVec(decodeRam(inc, microCode))).toStrictEqual(['INC', 345])
+    expect(toVec(decodeRam(dec, microCode))).toStrictEqual(['DEC', 678])
+    expect(toVec(decodeRam(null_, microCode))).toStrictEqual(['NULL', 901])
+    expect(toVec(decodeRam(hlt, microCode))).toStrictEqual(['HLT', 432])
   })
 
   it('should handle unknown opcode', () => {
     const microCode = parseMicrocode(normalMC, 11)
-    const cellResult = encodeRam(99, 123) // Unknown opcode
-    expect(cellResult.ok).toBe(true)
-    if (cellResult.ok) {
-      const opdata = decodeRam(cellResult.value, microCode)
-      expect(opdata.ok).toBe(true)
-      if (opdata.ok) {
-        expect(toVec(opdata.value)).toStrictEqual(['', 123])
-      }
-    }
+    const cell = encodeRam(99, 123) // Unknown opcode
+    const opdata = decodeRam(cell, microCode)
+    expect(toVec(opdata)).toStrictEqual(['', 123])
   })
 
   it('should handle zero data', () => {
     const microCode = parseMicrocode(normalMC, 11)
-    const cellResult = encodeRam(2, 0)
-    expect(cellResult.ok).toBe(true)
-    if (cellResult.ok) {
-      const opdata = decodeRam(cellResult.value, microCode)
-      expect(opdata.ok).toBe(true)
-      if (opdata.ok) {
-        expect(toVec(opdata.value)).toStrictEqual(['ADD', 0])
-      }
-    }
+    const cell = encodeRam(2, 0)
+    const opdata = decodeRam(cell, microCode)
+    expect(toVec(opdata)).toStrictEqual(['ADD', 0])
   })
 
   it('should handle maximum 3-digit data', () => {
     const microCode = parseMicrocode(normalMC, 11)
-    const cellResult = encodeRam(3, 999)
-    expect(cellResult.ok).toBe(true)
-    if (cellResult.ok) {
-      const opdata = decodeRam(cellResult.value, microCode)
-      expect(opdata.ok).toBe(true)
-      if (opdata.ok) {
-        expect(toVec(opdata.value)).toStrictEqual(['SUB', 999])
-      }
-    }
+    const cell = encodeRam(3, 999)
+    const opdata = decodeRam(cell, microCode)
+    expect(toVec(opdata)).toStrictEqual(['SUB', 999])
   })
 })

@@ -1,5 +1,4 @@
 import { assocMut } from "./utils";
-import { Ok, Err, type Result } from './funclib';
 
 // RAM size constant
 export const RAM_SIZE = 1000;
@@ -23,28 +22,25 @@ interface OPData {
 }
 
 /**
- * Parse a RAM cell and return the opcode as an operation name and data as a number with validation.
+ * Parse a RAM cell and return the opcode as an operation name and data as a number.
  * 
  * @param cell - The RAM cell value (e.g., 1020 for opcode 1, data 20)
  * @param microcode - The microcode object containing operations array
- * @returns Result containing object with opcode (operation name) and data (number) or error
+ * @returns Object with opcode (operation name) and data (number)
  * 
  * @example
  * // Using normal microcode
  * const normalMC = parseMicrocode(normalMC, 11);
- * const result = decodeRam(1020, normalMC);
- * // Returns: { success: true, data: { opcode: 'TAKE', data: 20 } }
+ * const result = parseOPData(1020, normalMC);
+ * // Returns: { opcode: 'TAKE', data: 20 }
  * 
  * @example
- * // Invalid cell value
- * const result = decodeRam(-1, normalMC);
- * // Returns: { success: false, error: Error(...) }
+ * // Using bonsai microcode  
+ * const bonsaiMC = parseMicrocode(bonsaiMC, 6);
+ * const result = parseOPData(1020, bonsaiMC);
+ * // Returns: { opcode: 'INC', data: 20 }
  */
-export const decodeRam = (cell: number, microcode: Microcode): Result<OPData> => {
-  if (cell < 0 || cell > 99999) {
-    return Err(`RAM cell value out of range: ${cell}. Must be 0-99999`);
-  }
-  
+export const decodeRam = (cell: number, microcode: Microcode): OPData => {
   const opcodeNumber = extractOpcode(cell);
   const data = extractData(cell);
   
@@ -52,7 +48,7 @@ export const decodeRam = (cell: number, microcode: Microcode): Result<OPData> =>
   const opcodeMapping = generateOpcodeMapping(microcode.operations);
   const opcode = opcodeMapping[opcodeNumber.toString().padStart(2, '0')] || '';
   
-  return Ok({ opcode, data });
+  return {opcode, data};
 };
 
 /**
@@ -70,27 +66,20 @@ export const toVec = (opData: OPData): [string, number] => {
 };
 
 /**
- * Create a RAM cell from opcode and data with validation.
+ * Create a RAM cell from opcode and data.
  * 
  * Format: ODDD (single digit opcode + 3-digit data) or OODDD (two digit opcode + 3-digit data)
  * 
  * @param opcode - The opcode number (0-99)
- * @param data - The data value (0-999)
- * @returns Result containing RAM cell value or error
+ * @param data - The data value (0-999, will be truncated to fit)
+ * @returns RAM cell value
  * 
  * @example
- * encodeRam(1, 20) // Returns: { success: true, data: 1020 }
- * encodeRam(-1, 20) // Returns: { success: false, error: Error(...) }
- * encodeRam(1, 1000) // Returns: { success: false, error: Error(...) }
+ * createRamCell(1, 20) // Returns: 1020 (opcode 1, data 20)
+ * createRamCell(12, 345) // Returns: 12345 (opcode 12, data 345)
  */
-export const encodeRam = (opcode: number, data: number): Result<number> => {
-  if (opcode < 0 || opcode > 99) {
-    return Err(`Opcode out of range: ${opcode}. Must be 0-99`);
-  }
-  if (data < 0 || data > 999) {
-    return Err(`Data out of range: ${data}. Must be 0-999`);
-  }
-  return Ok(opcode * 1000 + data);
+export const encodeRam = (opcode: number, data: number): number => {
+  return opcode * 1000 + (data % 1000);
 };
 
 export const bonsaiMC = "8;2;3;5;0;0;0;0;0;0;4;2;18;16;15;1;9;7;0;0;4;2;18;17;15;1;9;7;0;0;11;7;0;0;0;0;0;0;0;0;4;2;18;10;9;7;0;0;0;0;19;7;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;FETCH;INC;DEC;JMP;TST;HLT";
@@ -283,6 +272,156 @@ export function executeInstruction(state: CPUState): CPUState {
   }
   
   return state;
+}
+
+/**
+ * Convert a multiline string to a RAM array
+ * 
+ * @param programString - Multiline string where each line represents a RAM cell
+ * @returns Array of numbers representing RAM contents
+ * 
+ * @example
+ * const ram = str2ram(`1005
+ * 2006
+ * 3007
+ * 10000
+ * 23
+ * 3
+ * 10`);
+ * // Returns: [1005, 2006, 3007, 10000, 0, 23, 3, 10, 0, 0, ...]
+ */
+export function str2ram(programString: string): number[] {
+  const ram = Array(RAM_SIZE).fill(0);
+  const lines = programString.split('\n');
+  let address = 0;
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    if (trimmedLine.length === 0 || trimmedLine.startsWith(';')) {
+      continue; // Skip empty lines and comments
+    }
+
+    // Parse the number format (e.g., "1005" means opcode 1, data 5)
+    const value = parseInt(trimmedLine, 10);
+    if (isNaN(value)) {
+      console.warn(`Skipping invalid instruction line: ${trimmedLine}`);
+      continue;
+    }
+
+    ram[address] = value;
+    address++;
+  }
+
+  return ram;
+}
+
+/**
+ * Interface for program metadata extracted from prefix
+ */
+export interface ProgramMetadata {
+  type: string;
+  description?: string;
+  version: string;
+  raw: string;
+}
+
+/**
+ * Parse program metadata from prefix format
+ * Expected format: "type:{description}:version" or "type::version"
+ * 
+ * @param prefix - The metadata prefix string
+ * @returns Parsed metadata object
+ * 
+ * @example
+ * parseProgramMetadata("RAM:{add two numbers}:V2")
+ * // Returns: { type: "RAM", description: "add two numbers", version: "V2", raw: "RAM:{add two numbers}:V2" }
+ * 
+ * parseProgramMetadata("RAM::V1") 
+ * // Returns: { type: "RAM", description: undefined, version: "V1", raw: "RAM::V1" }
+ */
+export function parseProgramMetadata(prefix: string): ProgramMetadata {
+  const parts = prefix.split(':');
+  
+  if (parts.length < 3) {
+    throw new Error(`Invalid metadata format: ${prefix}. Expected format: "type:{description}:version" or "type::version"`);
+  }
+
+  const type = parts[0];
+  const description = parts[1] ? parts[1].replace(/^\{|\}$/g, '') : undefined;
+  const version = parts[2];
+
+  return {
+    type,
+    description: description || undefined,
+    version,
+    raw: prefix
+  };
+}
+
+/**
+ * Convert a program string to RAM array with support for different formats.
+ * Supports both multiline format and semicolon-separated format with metadata.
+ * 
+ * @param programString - Program string in various formats
+ * @returns Object with RAM array and metadata (if present)
+ * 
+ * @example
+ * // Multiline format (legacy)
+ * const result = loadProgram(`1005
+ * 2006
+ * 3007
+ * 10000`);
+ * // Returns: { ram: [1005, 2006, 3007, 10000, ...], metadata: null }
+ * 
+ * @example
+ * // Semicolon format with metadata
+ * const result = loadProgram("RAM:{add two numbers}:V2;1005;2006;3007;10000");
+ * // Returns: { ram: [1005, 2006, 3007, 10000, ...], metadata: { type: "RAM", description: "add two numbers", version: "V2" } }
+ */
+export function loadProgram(programString: string): { ram: number[], metadata: ProgramMetadata | null } {
+  const trimmed = programString.trim();
+  
+  // Check if it's semicolon-separated format with metadata
+  if (trimmed.includes(';')) {
+    const parts = trimmed.split(';');
+    const firstPart = parts[0];
+    
+    // Check if first part looks like metadata (contains colons)
+    if (firstPart.includes(':')) {
+      try {
+        const metadata = parseProgramMetadata(firstPart);
+        const programData = parts.slice(1); // Rest are program data
+        
+        const ram = Array(RAM_SIZE).fill(0);
+        
+        for (let i = 0; i < programData.length; i++) {
+          const value = parseInt(programData[i].trim(), 10);
+          if (!isNaN(value)) {
+            ram[i] = value;
+          }
+        }
+        
+        return { ram, metadata };
+      } catch (error) {
+        console.warn('Failed to parse metadata, falling back to legacy format:', error);
+      }
+    } else {
+      // Semicolon format without metadata - treat all parts as program data
+      const ram = Array(RAM_SIZE).fill(0);
+      
+      for (let i = 0; i < parts.length; i++) {
+        const value = parseInt(parts[i].trim(), 10);
+        if (!isNaN(value)) {
+          ram[i] = value;
+        }
+      }
+      
+      return { ram, metadata: null };
+    }
+  }
+  
+  // Fall back to legacy multiline format
+  return { ram: str2ram(programString), metadata: null };
 }
 
 /**
